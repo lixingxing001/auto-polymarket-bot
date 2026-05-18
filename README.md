@@ -39,6 +39,8 @@ python -m btc5m_bot.execution_health_cli
 python -m btc5m_bot.canary_readiness_cli
 python -m btc5m_bot.mock_execution_smoke_cli
 python -m btc5m_bot.canary_monitor_cli
+python -m btc5m_bot.canary_kill_switch_cli
+python -m btc5m_bot.canary_authorization_cli
 python -m btc5m_bot.historical_cli --windows 48
 python -m btc5m_bot.reconcile_cli
 python -m btc5m_bot.train_cli --windows 288
@@ -119,6 +121,8 @@ python -m btc5m_bot.snapshot_backtest_cli --windows 288
 - canary readiness 门槛报告入口
 - 受控 mock 执行烟测入口
 - canary readiness 自动监控入口
+- canary kill switch 报告入口
+- canary 授权包生成入口
 
 下一步才会接：
 

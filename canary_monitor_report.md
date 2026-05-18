@@ -1,6 +1,6 @@
 # Canary Monitor Report
 
-- checked_at: 2026-05-18T17:26:17.013747+00:00
+- checked_at: 2026-05-18T17:28:02.654889+00:00
 - ready: False
 - next_action: collect_more_forward_evidence
 - readiness_report_path: canary_readiness_report.md

@@ -10,7 +10,6 @@
 - insufficient_forward_evaluations
 - insufficient_forward_trades
 - no_candidate_review_ready
-- no_mock_submit_seen
 
 ## Warnings
 
@@ -27,7 +26,7 @@
 - candidate_count: 3
 - review_ready_candidates: []
 - collecting_candidates: ['avoid_low_momentum_near_barrier', 'avoid_mid_abs_return_5m', 'edge_008']
-- accepted_attempts: 0
+- accepted_attempts: 1
 - rejected_attempts: 2
 
 ## Candidate evidence

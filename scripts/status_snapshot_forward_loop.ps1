@@ -14,6 +14,7 @@ $evaluationRows = if (Test-Path $evaluationPath) { (Import-Csv $evaluationPath).
 $candidateFiles = if (Test-Path $candidateDir) { Get-ChildItem $candidateDir -Filter *.csv } else { @() }
 $env:PYTHONPATH = Join-Path $repoRoot "src"
 $guardrail = python -m btc5m_bot.strategy_guardrail_cli
+$candidateEvidence = python -m btc5m_bot.candidate_evidence_cli
 
 [pscustomobject]@{
     running = [bool]$process
@@ -22,4 +23,5 @@ $guardrail = python -m btc5m_bot.strategy_guardrail_cli
     evaluations = $evaluationRows
     candidate_files = $candidateFiles.Count
     guardrail = $guardrail
+    candidate_evidence = $candidateEvidence
 }

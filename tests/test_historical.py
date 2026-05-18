@@ -1,9 +1,12 @@
 import unittest
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
+import tempfile
 
 from btc5m_bot.coinbase import Candle, build_historical_price_only_features
 from btc5m_bot.historical import HistoricalSample, evaluate_directional_baseline
 from btc5m_bot.historical import evaluate_market_price_baseline
+from btc5m_bot.historical import _read_cached_samples, _write_cached_samples
 from btc5m_bot.models import FeatureVector
 from btc5m_bot.polymarket import resolved_outcome_from_event
 
@@ -82,6 +85,24 @@ class HistoricalTests(unittest.TestCase):
         self.assertEqual(evaluation["majority_accuracy"], 2 / 3)
         self.assertEqual(evaluation["confusion"]["tp"], 1)
         self.assertEqual(evaluate_market_price_baseline(samples)["accuracy"], 2 / 3)
+
+    def test_cached_samples_roundtrip(self) -> None:
+        sample = HistoricalSample(
+            datetime(2026, 5, 18, 10, 0, tzinfo=timezone.utc),
+            datetime(2026, 5, 18, 10, 5, tzinfo=timezone.utc),
+            "s",
+            "c",
+            "Up",
+            0.7,
+            FeatureVector(0, 0, 0, 0, 0, 240),
+            0.7,
+            0.3,
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "cache.csv"
+            _write_cached_samples(path, (sample,))
+            loaded = _read_cached_samples(path)
+        self.assertIn("s", loaded)
 
 
 if __name__ == "__main__":

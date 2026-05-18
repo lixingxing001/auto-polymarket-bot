@@ -40,6 +40,7 @@ def build_recent_historical_dataset(
     polymarket: PolymarketPublicClient | None = None,
     coinbase: CoinbaseExchangeClient | None = None,
     max_workers: int = 6,
+    cache_path: Path | None = Path("data/historical_dataset_cache.csv"),
 ) -> DatasetBuildResult:
     if windows <= 0:
         raise ValueError("windows must be positive")
@@ -55,9 +56,26 @@ def build_recent_historical_dataset(
         last_closed_start - timedelta(minutes=5 * offset)
         for offset in reversed(range(windows))
     ]
+    cached_samples = _read_cached_samples(cache_path) if cache_path is not None else {}
+    requested_slugs = {f"btc-updown-5m-{int(start.timestamp())}" for start in starts}
+    reused = [cached_samples[slug] for slug in requested_slugs if slug in cached_samples]
+    missing_starts = [
+        start
+        for start in starts
+        if f"btc-updown-5m-{int(start.timestamp())}" not in cached_samples
+    ]
 
-    candle_start = starts[0] - timedelta(minutes=5)
-    candle_end = starts[-1] + timedelta(minutes=2)
+    if not missing_starts:
+        ordered = tuple(cached_samples[f"btc-updown-5m-{int(start.timestamp())}"] for start in starts)
+        return DatasetBuildResult(
+            samples=ordered,
+            skipped_missing_market=0,
+            skipped_unresolved=0,
+            skipped_missing_candles=0,
+        )
+
+    candle_start = missing_starts[0] - timedelta(minutes=5)
+    candle_end = missing_starts[-1] + timedelta(minutes=2)
     candles = coinbase.get_minute_candles_range(start=candle_start, end=candle_end)
 
     model = BaselineSignalModel()
@@ -67,13 +85,13 @@ def build_recent_historical_dataset(
     skipped_missing_candles = 0
 
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        events = list(executor.map(_fetch_event_for_start, [(polymarket, start) for start in starts]))
+        events = list(executor.map(_fetch_event_for_start, [(polymarket, start) for start in missing_starts]))
 
     price_contexts = [
         _build_price_context_args(polymarket, window_start, event, decision_offset_seconds)
         if event is not None
         else None
-        for window_start, event in zip(starts, events, strict=True)
+        for window_start, event in zip(missing_starts, events, strict=True)
     ]
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         price_results = list(
@@ -84,7 +102,7 @@ def build_recent_historical_dataset(
         )
     price_iter = iter(price_results)
 
-    for window_start, event, context in zip(starts, events, price_contexts, strict=True):
+    for window_start, event, context in zip(missing_starts, events, price_contexts, strict=True):
         slug = f"btc-updown-5m-{int(window_start.timestamp())}"
         if event is None:
             skipped_missing_market += 1
@@ -137,8 +155,12 @@ def build_recent_historical_dataset(
             )
         )
 
+    all_samples = tuple(sorted([*reused, *samples], key=lambda sample: sample.window_start))
+    if cache_path is not None:
+        _write_cached_samples(cache_path, all_samples)
+
     return DatasetBuildResult(
-        samples=tuple(samples),
+        samples=all_samples,
         skipped_missing_market=skipped_missing_market,
         skipped_unresolved=skipped_unresolved,
         skipped_missing_candles=skipped_missing_candles,
@@ -177,6 +199,40 @@ def _fetch_price_context(
         )
     except Exception:  # noqa: BLE001
         return market, None, None
+
+
+def _read_cached_samples(path: Path) -> dict[str, HistoricalSample]:
+    if not path.exists():
+        return {}
+    with path.open(newline="", encoding="utf-8") as handle:
+        rows = list(csv.DictReader(handle))
+    samples: dict[str, HistoricalSample] = {}
+    feature_fields = set(FeatureVector.__dataclass_fields__.keys())
+    for row in rows:
+        features = FeatureVector(
+            **{
+                field: float(row[field])
+                for field in feature_fields
+                if field in row and row[field] != ""
+            }
+        )
+        sample = HistoricalSample(
+            window_start=datetime.fromisoformat(row["window_start"]),
+            window_end=datetime.fromisoformat(row["window_end"]),
+            slug=row["slug"],
+            condition_id=row["condition_id"],
+            label=row["label"],
+            prob_up=float(row["prob_up"]),
+            features=features,
+            polymarket_up_price=float(row["polymarket_up_price"]),
+            polymarket_down_price=float(row["polymarket_down_price"]),
+        )
+        samples[sample.slug] = sample
+    return samples
+
+
+def _write_cached_samples(path: Path, samples: tuple[HistoricalSample, ...]) -> None:
+    write_dataset_csv(path, samples)
 
 
 def write_dataset_csv(path: Path, samples: tuple[HistoricalSample, ...]) -> None:

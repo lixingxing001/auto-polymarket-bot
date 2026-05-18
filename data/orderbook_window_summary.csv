@@ -1,0 +1,2 @@
+slug,condition_id,snapshot_count,first_captured_at,last_captured_at,min_up_best_ask,max_up_best_ask,min_down_best_ask,max_down_best_ask
+btc-updown-5m-1779112200,0xd3e325007c6a94f0e1b597683931a39f5968e05ce2e4f86f7ff8e86c9f440a86,3,2026-05-18T13:51:52.758375+00:00,2026-05-18T13:52:28.600875+00:00,0.62,0.81,0.2,0.39

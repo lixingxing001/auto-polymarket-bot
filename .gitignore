@@ -3,6 +3,3 @@ __pycache__/
 .venv/
 .env
 .idea/
-data/
-task_plan.md
-notes.md

@@ -38,3 +38,12 @@
 1. 用 market-aware 概率重新跑 execution backtest
 2. 把高置信度阈值接进策略决策
 3. 扩展到更长时间窗口，增加 walk-forward 折数
+
+## 已完成的下一步验证
+
+market-aware execution backtest 已完成：
+
+- holdout：+7.998 USDC
+- walk-forward：+1.057 USDC
+
+它说明这条路线值得继续，但证据还薄，远没到可以盲目放大的程度。

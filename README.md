@@ -35,6 +35,7 @@ python -m btc5m_bot.historical_cli --windows 48
 python -m btc5m_bot.reconcile_cli
 python -m btc5m_bot.train_cli --windows 288
 python -m btc5m_bot.execution_backtest_cli --windows 48
+python -m btc5m_bot.execution_backtest_cli --windows 288 --min-confidence 0.65
 ```
 
 ## 当前阶段
@@ -60,6 +61,7 @@ python -m btc5m_bot.execution_backtest_cli --windows 48
 - 回测结果复盘文档
 - Polymarket 历史价格特征与市场基线
 - market-aware 模型复盘文档
+- market-aware 可执行价格回测复盘文档
 
 下一步才会接：
 

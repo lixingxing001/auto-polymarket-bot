@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import json
+import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Iterable
-from urllib.error import HTTPError
+from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
@@ -268,9 +269,21 @@ class PolymarketPublicClient:
         )
 
     def _get_json(self, url: str) -> dict:
-        request = Request(url, headers={"User-Agent": "btc5m-bot/0.1"})
-        with urlopen(request, timeout=self.timeout_seconds) as response:
-            return json.loads(response.read().decode("utf-8"))
+        last_error: Exception | None = None
+        for attempt in range(3):
+            request = Request(url, headers={"User-Agent": "btc5m-bot/0.1"})
+            try:
+                with urlopen(request, timeout=self.timeout_seconds) as response:
+                    return json.loads(response.read().decode("utf-8"))
+            except HTTPError:
+                raise
+            except (URLError, TimeoutError, OSError) as exc:
+                last_error = exc
+                if attempt < 2:
+                    time.sleep(0.25 * (attempt + 1))
+                    continue
+                raise
+        raise RuntimeError("unreachable") from last_error
 
 
 def resolved_outcome_from_event(event: dict) -> str | None:

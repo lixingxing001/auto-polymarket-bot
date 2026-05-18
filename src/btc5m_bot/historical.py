@@ -39,7 +39,7 @@ def build_recent_historical_dataset(
     now: datetime | None = None,
     polymarket: PolymarketPublicClient | None = None,
     coinbase: CoinbaseExchangeClient | None = None,
-    max_workers: int = 8,
+    max_workers: int = 6,
 ) -> DatasetBuildResult:
     if windows <= 0:
         raise ValueError("windows must be positive")
@@ -169,11 +169,14 @@ def _fetch_price_context(
     polymarket, window_start, event, decision_offset_seconds = args
     market = polymarket._parse_market(event)
     decision_ts = int((window_start + timedelta(seconds=decision_offset_seconds)).timestamp())
-    return (
-        market,
-        polymarket.get_price_at_or_before(market.up_token_id, decision_ts),
-        polymarket.get_price_at_or_before(market.down_token_id, decision_ts),
-    )
+    try:
+        return (
+            market,
+            polymarket.get_price_at_or_before(market.up_token_id, decision_ts),
+            polymarket.get_price_at_or_before(market.down_token_id, decision_ts),
+        )
+    except Exception:  # noqa: BLE001
+        return market, None, None
 
 
 def write_dataset_csv(path: Path, samples: tuple[HistoricalSample, ...]) -> None:

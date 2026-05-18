@@ -36,6 +36,7 @@ python -m btc5m_bot.paper_loop --execution-dry-run --iterations 1
 python -m btc5m_bot.live_execution_cli
 python -m btc5m_bot.live_execution_cli --adapter mock
 python -m btc5m_bot.execution_health_cli
+python -m btc5m_bot.canary_readiness_cli
 python -m btc5m_bot.historical_cli --windows 48
 python -m btc5m_bot.reconcile_cli
 python -m btc5m_bot.train_cli --windows 288
@@ -113,6 +114,7 @@ python -m btc5m_bot.snapshot_backtest_cli --windows 288
 - 默认拒单的实盘适配器接口
 - 订单意图状态机与执行审计事件
 - 执行健康报告入口
+- canary readiness 门槛报告入口
 
 下一步才会接：
 

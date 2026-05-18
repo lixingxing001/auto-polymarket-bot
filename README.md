@@ -46,6 +46,7 @@ python -m btc5m_bot.snapshot_forward_loop --iterations 1
 python -m btc5m_bot.strategy_guardrail_cli
 python -m btc5m_bot.strategy_candidate_cli list
 python -m btc5m_bot.strategy_candidate_cli compare --candidate-id edge_008
+python -m btc5m_bot.error_diagnostics_cli --windows 288
 python -m btc5m_bot.snapshot_backtest_cli --windows 288
 .\scripts\start_snapshot_recorder.ps1
 .\scripts\status_snapshot_recorder.ps1
@@ -96,6 +97,7 @@ python -m btc5m_bot.snapshot_backtest_cli --windows 288
 - 前向评估后台循环脚本
 - 策略门控与参数冻结审计入口
 - 候选策略登记与受控对照入口
+- 模型误差分层诊断入口
 
 下一步才会接：
 

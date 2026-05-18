@@ -8,6 +8,12 @@ from pathlib import Path
 from typing import Any, Protocol
 
 from .execution_safety import ProposedOrder
+from .order_intent import (
+    DEFAULT_INTENT_EVENT_LOG,
+    append_order_intent_events,
+    build_order_intent_flow,
+    intent_to_dict,
+)
 from .paper_dry_run import generate_paper_dry_run
 
 
@@ -145,6 +151,7 @@ def submit_preflighted_order(
 def run_live_execution_attempt(
     adapter_kind: str = "disabled",
     attempt_log_path: Path = DEFAULT_ATTEMPT_LOG,
+    intent_event_log_path: Path = DEFAULT_INTENT_EVENT_LOG,
 ) -> dict[str, Any]:
     dry_run = generate_paper_dry_run()
     preflight = dry_run["execution_preflight"]
@@ -154,10 +161,14 @@ def run_live_execution_attempt(
         preflight=preflight,
         adapter=adapter,
     )
+    intent, intent_events = build_order_intent_flow(dry_run=dry_run, attempt=attempt)
     append_execution_attempt(attempt_log_path, attempt)
+    append_order_intent_events(intent_event_log_path, intent_events)
     return {
         "adapter": adapter.adapter_name,
         "dry_run": dry_run,
+        "intent": intent_to_dict(intent),
+        "intent_events": [asdict(event) for event in intent_events],
         "attempt": asdict(attempt),
     }
 

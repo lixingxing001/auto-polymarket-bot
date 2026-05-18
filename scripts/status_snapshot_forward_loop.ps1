@@ -1,0 +1,19 @@
+$ErrorActionPreference = "Stop"
+
+$repoRoot = Split-Path -Parent $PSScriptRoot
+$pidPath = Join-Path $repoRoot "data\snapshot_forward_loop.pid"
+$evaluationPath = Join-Path $repoRoot "data\forward_snapshot_evaluations.csv"
+$archivePath = Join-Path $repoRoot "data\settled_snapshot_windows.csv"
+
+$pidValue = if (Test-Path $pidPath) { Get-Content $pidPath -ErrorAction SilentlyContinue } else { $null }
+$process = if ($pidValue) { Get-Process -Id $pidValue -ErrorAction SilentlyContinue } else { $null }
+
+$archiveRows = if (Test-Path $archivePath) { (Import-Csv $archivePath).Count } else { 0 }
+$evaluationRows = if (Test-Path $evaluationPath) { (Import-Csv $evaluationPath).Count } else { 0 }
+
+[pscustomobject]@{
+    running = [bool]$process
+    pid = if ($process) { $process.Id } else { "" }
+    archived_windows = $archiveRows
+    evaluations = $evaluationRows
+}

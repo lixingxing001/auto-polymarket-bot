@@ -40,6 +40,9 @@ python -m btc5m_bot.extended_research_cli --windows 576
 python -m btc5m_bot.snapshot_recorder --iterations 12 --interval-seconds 5
 python -m btc5m_bot.ws_snapshot_recorder --max-windows 1 --max-seconds-per-window 20
 python -m btc5m_bot.snapshot_coverage_cli --windows 288 --snapshots data\ws_orderbook_snapshots.csv
+python -m btc5m_bot.snapshot_forward_eval_cli --archive-only
+python -m btc5m_bot.snapshot_forward_eval_cli --windows 288
+python -m btc5m_bot.snapshot_forward_loop --iterations 1
 python -m btc5m_bot.snapshot_backtest_cli --windows 288
 .\scripts\start_snapshot_recorder.ps1
 .\scripts\status_snapshot_recorder.ps1
@@ -47,6 +50,9 @@ python -m btc5m_bot.snapshot_backtest_cli --windows 288
 .\scripts\start_ws_snapshot_recorder.ps1
 .\scripts\status_ws_snapshot_recorder.ps1
 .\scripts\stop_ws_snapshot_recorder.ps1
+.\scripts\start_snapshot_forward_loop.ps1
+.\scripts\status_snapshot_forward_loop.ps1
+.\scripts\stop_snapshot_forward_loop.ps1
 ```
 
 ## 当前阶段
@@ -83,6 +89,8 @@ python -m btc5m_bot.snapshot_backtest_cli --windows 288
 - WebSocket 实时盘口采集器
 - WebSocket 快照采集复盘文档
 - 快照覆盖率检查入口
+- 已结算快照归档与前向评估入口
+- 前向评估后台循环脚本
 
 下一步才会接：
 

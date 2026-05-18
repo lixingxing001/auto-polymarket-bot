@@ -5,6 +5,7 @@ from pathlib import Path
 
 from btc5m_bot.candidate_strategies import (
     CandidateStrategy,
+    candidate_allows_sample,
     compare_candidate_strategy,
     load_candidate_registry,
     register_candidate,
@@ -34,6 +35,41 @@ class CandidateStrategyTests(unittest.TestCase):
             )
             loaded = load_candidate_registry(path)["edge_008"]
             self.assertEqual(loaded, candidate)
+
+    def test_candidate_filter_blocks_low_momentum_near_barrier(self) -> None:
+        sample = HistoricalSample(
+            window_start=datetime(2026, 5, 18, 0, 0, tzinfo=timezone.utc),
+            window_end=datetime(2026, 5, 18, 0, 5, tzinfo=timezone.utc),
+            slug="s",
+            condition_id="c",
+            label="Up",
+            prob_up=0.5,
+            features=FeatureVector(
+                return_1m=0.0001,
+                return_5m=0.0,
+                realized_vol_5m=0.0,
+                trade_imbalance_30s=0.0,
+                distance_to_barrier_bps=0.5,
+                seconds_to_close=240,
+            ),
+            polymarket_up_price=0.5,
+            polymarket_down_price=0.5,
+        )
+        candidate = CandidateStrategy(
+            candidate_id="scene",
+            description="scene",
+            rationale="scene",
+            registered_at=datetime(2026, 5, 18, 0, 0, tzinfo=timezone.utc),
+            eligible_after_market_end_time=datetime(2026, 5, 18, 0, 0, tzinfo=timezone.utc),
+            min_confidence=0.65,
+            min_edge=0.03,
+            stake_usd=10.0,
+            max_fill_delay_seconds=30,
+            filter_kind="avoid_low_momentum_near_barrier",
+            min_abs_return_1m=0.001,
+            min_abs_distance_to_barrier_bps=1.0,
+        )
+        self.assertFalse(candidate_allows_sample(candidate, sample))
 
     def test_compare_candidate_only_uses_future_windows(self) -> None:
         start = datetime(2026, 5, 18, 0, 0, tzinfo=timezone.utc)

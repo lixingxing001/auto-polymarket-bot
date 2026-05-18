@@ -49,6 +49,13 @@ def main() -> None:
         type=int,
         default=ACTIVE_STRATEGY_PARAMETERS.max_fill_delay_seconds,
     )
+    register_parser.add_argument("--filter-kind", default="none")
+    register_parser.add_argument("--min-abs-return-1m", type=float, default=None)
+    register_parser.add_argument(
+        "--min-abs-distance-to-barrier-bps",
+        type=float,
+        default=None,
+    )
 
     list_parser = subparsers.add_parser("list")
     list_parser.add_argument("--registry", type=Path, default=DEFAULT_REGISTRY)
@@ -78,6 +85,9 @@ def main() -> None:
             min_edge=args.min_edge,
             stake_usd=args.stake_usd,
             max_fill_delay_seconds=args.max_delay_seconds,
+            filter_kind=args.filter_kind,
+            min_abs_return_1m=args.min_abs_return_1m,
+            min_abs_distance_to_barrier_bps=args.min_abs_distance_to_barrier_bps,
         )
         print(candidate.__dict__)
         return

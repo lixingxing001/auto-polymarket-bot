@@ -24,6 +24,9 @@ class CandidateStrategy:
     min_edge: float
     stake_usd: float
     max_fill_delay_seconds: int
+    filter_kind: str = "none"
+    min_abs_return_1m: float | None = None
+    min_abs_distance_to_barrier_bps: float | None = None
     status: str = "registered"
 
     def to_config(self) -> ExecutionBacktestConfig:
@@ -68,6 +71,11 @@ def load_candidate_registry(path: Path) -> dict[str, CandidateStrategy]:
             min_edge=float(row["min_edge"]),
             stake_usd=float(row["stake_usd"]),
             max_fill_delay_seconds=int(row["max_fill_delay_seconds"]),
+            filter_kind=row.get("filter_kind", "none") or "none",
+            min_abs_return_1m=_optional_float(row.get("min_abs_return_1m", "")),
+            min_abs_distance_to_barrier_bps=_optional_float(
+                row.get("min_abs_distance_to_barrier_bps", "")
+            ),
             status=row["status"],
         )
         for row in rows
@@ -84,6 +92,9 @@ def register_candidate(
     min_edge: float,
     stake_usd: float,
     max_fill_delay_seconds: int,
+    filter_kind: str = "none",
+    min_abs_return_1m: float | None = None,
+    min_abs_distance_to_barrier_bps: float | None = None,
     registered_at: datetime | None = None,
 ) -> CandidateStrategy:
     registry = load_candidate_registry(path)
@@ -101,6 +112,9 @@ def register_candidate(
         min_edge=min_edge,
         stake_usd=stake_usd,
         max_fill_delay_seconds=max_fill_delay_seconds,
+        filter_kind=filter_kind,
+        min_abs_return_1m=min_abs_return_1m,
+        min_abs_distance_to_barrier_bps=min_abs_distance_to_barrier_bps,
     )
     write_candidate_registry(path, tuple([*registry.values(), candidate]))
     return candidate
@@ -118,6 +132,16 @@ def write_candidate_registry(path: Path, candidates: tuple[CandidateStrategy, ..
                     **candidate.__dict__,
                     "registered_at": candidate.registered_at.isoformat(),
                     "eligible_after_market_end_time": candidate.eligible_after_market_end_time.isoformat(),
+                    "min_abs_return_1m": (
+                        candidate.min_abs_return_1m
+                        if candidate.min_abs_return_1m is not None
+                        else ""
+                    ),
+                    "min_abs_distance_to_barrier_bps": (
+                        candidate.min_abs_distance_to_barrier_bps
+                        if candidate.min_abs_distance_to_barrier_bps is not None
+                        else ""
+                    ),
                 }
             )
 
@@ -179,6 +203,9 @@ def compare_candidate_strategy(
             forecast_prob_up=forecast_prob_up,
             config=candidate_config,
         )
+        if not candidate_allows_sample(candidate, sample):
+            candidate_trade = None
+            candidate_reason = "candidate_filter"
         active_pnl = active_trade.pnl_usd if active_trade is not None else None
         candidate_pnl = candidate_trade.pnl_usd if candidate_trade is not None else None
         rows.append(
@@ -233,3 +260,23 @@ def write_candidate_comparison(path: Path, rows: tuple[CandidateComparisonRow, .
                     "market_end_time": row.market_end_time.isoformat(),
                 }
             )
+
+
+def candidate_allows_sample(
+    candidate: CandidateStrategy,
+    sample: HistoricalSample,
+) -> bool:
+    if candidate.filter_kind == "none":
+        return True
+    if candidate.filter_kind != "avoid_low_momentum_near_barrier":
+        raise ValueError(f"unsupported candidate filter: {candidate.filter_kind}")
+    min_abs_return_1m = candidate.min_abs_return_1m or 0.0
+    min_abs_distance = candidate.min_abs_distance_to_barrier_bps or 0.0
+    return not (
+        abs(sample.features.return_1m) <= min_abs_return_1m
+        and abs(sample.features.distance_to_barrier_bps) <= min_abs_distance
+    )
+
+
+def _optional_float(value: str | None) -> float | None:
+    return float(value) if value not in {"", None} else None

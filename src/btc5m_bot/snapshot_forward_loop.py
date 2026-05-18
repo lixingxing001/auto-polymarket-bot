@@ -6,6 +6,15 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
+from .candidate_strategies import (
+    compare_candidate_strategy,
+    load_candidate_registry,
+    summarize_candidate_comparison,
+    write_candidate_comparison,
+)
+from .historical import build_recent_historical_dataset
+from .settled_snapshot_archive import load_archived_windows
+from .snapshot_backtest import load_snapshot_quotes
 from .snapshot_forward_eval_cli import run_snapshot_forward_eval
 from .strategy_guardrails import ACTIVE_STRATEGY_PARAMETERS
 
@@ -22,6 +31,8 @@ def run_loop(
     min_edge: float,
     stake_usd: float,
     max_delay_seconds: int,
+    candidate_registry: Path | None = None,
+    candidate_output_dir: Path | None = None,
     continue_on_error: bool = False,
 ) -> None:
     index = 0
@@ -38,10 +49,29 @@ def run_loop(
                 stake_usd=stake_usd,
                 max_delay_seconds=max_delay_seconds,
             )
+            candidate_summaries = {}
+            if candidate_registry is not None and candidate_output_dir is not None:
+                archived_windows = tuple(load_archived_windows(archive_output).values())
+                historical = build_recent_historical_dataset(windows=windows)
+                snapshot_quotes = load_snapshot_quotes(snapshots)
+                for candidate_id, candidate in load_candidate_registry(candidate_registry).items():
+                    rows = compare_candidate_strategy(
+                        candidate=candidate,
+                        archived_windows=archived_windows,
+                        samples=historical.samples,
+                        snapshots=snapshot_quotes,
+                        min_train_size=min_train_size,
+                    )
+                    write_candidate_comparison(
+                        candidate_output_dir / f"{candidate_id}.csv",
+                        rows,
+                    )
+                    candidate_summaries[candidate_id] = summarize_candidate_comparison(rows)
             print(
                 {
                     "ran_at": datetime.now(timezone.utc).isoformat(),
                     **summary,
+                    "candidate_summaries": candidate_summaries,
                 },
                 flush=True,
             )
@@ -91,6 +121,16 @@ def main() -> None:
         type=int,
         default=ACTIVE_STRATEGY_PARAMETERS.max_fill_delay_seconds,
     )
+    parser.add_argument(
+        "--candidate-registry",
+        type=Path,
+        default=Path("strategy_candidates.csv"),
+    )
+    parser.add_argument(
+        "--candidate-output-dir",
+        type=Path,
+        default=Path("data/candidate_comparisons"),
+    )
     parser.add_argument("--continue-on-error", action="store_true")
     args = parser.parse_args()
     run_loop(
@@ -105,6 +145,8 @@ def main() -> None:
         min_edge=args.min_edge,
         stake_usd=args.stake_usd,
         max_delay_seconds=args.max_delay_seconds,
+        candidate_registry=args.candidate_registry,
+        candidate_output_dir=args.candidate_output_dir,
         continue_on_error=args.continue_on_error,
     )
 

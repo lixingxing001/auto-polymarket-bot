@@ -1,0 +1,2 @@
+candidate_id,description,rationale,registered_at,eligible_after_market_end_time,min_confidence,min_edge,stake_usd,max_fill_delay_seconds,status
+edge_008,Higher edge gate,Offline execution proxy suggested stronger price discipline deserves a prospective test,2026-05-18T15:12:38.519494+00:00,2026-05-18T15:05:00+00:00,0.65,0.08,10.0,30,registered

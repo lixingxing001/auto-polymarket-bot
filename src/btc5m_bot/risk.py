@@ -7,6 +7,7 @@ from .models import MarketQuote, ProbabilityForecast, TradeDecision
 class RiskConfig:
     bankroll_usd: float = 1_000.0
     min_edge: float = 0.03
+    min_confidence: float = 0.65
     max_bankroll_fraction: float = 0.02
     max_liquidity_fraction: float = 0.10
     min_seconds_to_close: int = 45
@@ -25,6 +26,9 @@ class RiskManager:
     ) -> TradeDecision:
         if seconds_to_close < self.config.min_seconds_to_close:
             return TradeDecision("HOLD", 0.0, 0.0, "too_late")
+
+        if max(forecast.prob_up, forecast.prob_down) < self.config.min_confidence:
+            return TradeDecision("HOLD", 0.0, 0.0, "low_confidence")
 
         up_fee = self._fee_per_share(quote.up_ask)
         down_fee = self._fee_per_share(quote.down_ask)

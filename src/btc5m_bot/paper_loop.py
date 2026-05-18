@@ -6,6 +6,8 @@ import json
 import time
 from pathlib import Path
 
+from .execution_safety import ExecutionSafetyConfig
+from .paper_dry_run import DEFAULT_DRY_RUN_OUTPUT, append_dry_run, generate_paper_dry_run
 from .paper_signal import generate_paper_signal
 
 
@@ -30,12 +32,21 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--iterations", type=int, default=1)
     parser.add_argument("--interval-seconds", type=float, default=15.0)
-    parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
+    parser.add_argument("--output", type=Path, default=None)
+    parser.add_argument("--execution-dry-run", action="store_true")
+    parser.add_argument("--enable-live-trading", action="store_true")
     args = parser.parse_args()
+    output = args.output or (DEFAULT_DRY_RUN_OUTPUT if args.execution_dry_run else DEFAULT_OUTPUT)
 
     for index in range(args.iterations):
-        signal = generate_paper_signal()
-        append_signal(args.output, signal)
+        if args.execution_dry_run:
+            signal = generate_paper_dry_run(
+                config=ExecutionSafetyConfig(live_trading_enabled=args.enable_live_trading)
+            )
+            append_dry_run(output, signal)
+        else:
+            signal = generate_paper_signal()
+            append_signal(output, signal)
         print(signal)
         if index < args.iterations - 1:
             time.sleep(args.interval_seconds)

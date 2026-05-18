@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from .snapshot_forward_eval_cli import run_snapshot_forward_eval
+from .strategy_guardrails import ACTIVE_STRATEGY_PARAMETERS
 
 
 def run_loop(
@@ -70,10 +71,26 @@ def main() -> None:
     parser.add_argument("--archive-output", type=Path, default=Path("data/settled_snapshot_windows.csv"))
     parser.add_argument("--evaluation-output", type=Path, default=Path("data/forward_snapshot_evaluations.csv"))
     parser.add_argument("--min-train-size", type=int, default=200)
-    parser.add_argument("--min-confidence", type=float, default=0.65)
-    parser.add_argument("--min-edge", type=float, default=0.03)
-    parser.add_argument("--stake-usd", type=float, default=10.0)
-    parser.add_argument("--max-delay-seconds", type=int, default=30)
+    parser.add_argument(
+        "--min-confidence",
+        type=float,
+        default=ACTIVE_STRATEGY_PARAMETERS.min_confidence,
+    )
+    parser.add_argument(
+        "--min-edge",
+        type=float,
+        default=ACTIVE_STRATEGY_PARAMETERS.min_edge,
+    )
+    parser.add_argument(
+        "--stake-usd",
+        type=float,
+        default=ACTIVE_STRATEGY_PARAMETERS.stake_usd,
+    )
+    parser.add_argument(
+        "--max-delay-seconds",
+        type=int,
+        default=ACTIVE_STRATEGY_PARAMETERS.max_fill_delay_seconds,
+    )
     parser.add_argument("--continue-on-error", action="store_true")
     args = parser.parse_args()
     run_loop(

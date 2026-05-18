@@ -43,6 +43,7 @@ python -m btc5m_bot.snapshot_coverage_cli --windows 288 --snapshots data\ws_orde
 python -m btc5m_bot.snapshot_forward_eval_cli --archive-only
 python -m btc5m_bot.snapshot_forward_eval_cli --windows 288
 python -m btc5m_bot.snapshot_forward_loop --iterations 1
+python -m btc5m_bot.strategy_guardrail_cli
 python -m btc5m_bot.snapshot_backtest_cli --windows 288
 .\scripts\start_snapshot_recorder.ps1
 .\scripts\status_snapshot_recorder.ps1
@@ -91,6 +92,7 @@ python -m btc5m_bot.snapshot_backtest_cli --windows 288
 - 快照覆盖率检查入口
 - 已结算快照归档与前向评估入口
 - 前向评估后台循环脚本
+- 策略门控与参数冻结审计入口
 
 下一步才会接：
 

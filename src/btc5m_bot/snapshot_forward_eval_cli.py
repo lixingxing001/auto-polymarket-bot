@@ -11,6 +11,7 @@ from .settled_snapshot_archive import (
     load_archived_windows,
 )
 from .snapshot_backtest import load_snapshot_quotes
+from .strategy_guardrails import ACTIVE_STRATEGY_PARAMETERS
 
 
 def run_snapshot_forward_eval(
@@ -19,10 +20,10 @@ def run_snapshot_forward_eval(
     archive_output: Path = Path("data/settled_snapshot_windows.csv"),
     evaluation_output: Path = Path("data/forward_snapshot_evaluations.csv"),
     min_train_size: int = 200,
-    min_confidence: float = 0.65,
-    min_edge: float = 0.03,
-    stake_usd: float = 10.0,
-    max_delay_seconds: int = 30,
+    min_confidence: float = ACTIVE_STRATEGY_PARAMETERS.min_confidence,
+    min_edge: float = ACTIVE_STRATEGY_PARAMETERS.min_edge,
+    stake_usd: float = ACTIVE_STRATEGY_PARAMETERS.stake_usd,
+    max_delay_seconds: int = ACTIVE_STRATEGY_PARAMETERS.max_fill_delay_seconds,
     archive_only: bool = False,
 ) -> dict:
     archive_summary = archive_settled_snapshot_windows(
@@ -62,10 +63,26 @@ def main() -> None:
     parser.add_argument("--archive-output", type=Path, default=Path("data/settled_snapshot_windows.csv"))
     parser.add_argument("--evaluation-output", type=Path, default=Path("data/forward_snapshot_evaluations.csv"))
     parser.add_argument("--min-train-size", type=int, default=200)
-    parser.add_argument("--min-confidence", type=float, default=0.65)
-    parser.add_argument("--min-edge", type=float, default=0.03)
-    parser.add_argument("--stake-usd", type=float, default=10.0)
-    parser.add_argument("--max-delay-seconds", type=int, default=30)
+    parser.add_argument(
+        "--min-confidence",
+        type=float,
+        default=ACTIVE_STRATEGY_PARAMETERS.min_confidence,
+    )
+    parser.add_argument(
+        "--min-edge",
+        type=float,
+        default=ACTIVE_STRATEGY_PARAMETERS.min_edge,
+    )
+    parser.add_argument(
+        "--stake-usd",
+        type=float,
+        default=ACTIVE_STRATEGY_PARAMETERS.stake_usd,
+    )
+    parser.add_argument(
+        "--max-delay-seconds",
+        type=int,
+        default=ACTIVE_STRATEGY_PARAMETERS.max_fill_delay_seconds,
+    )
     parser.add_argument("--archive-only", action="store_true")
     args = parser.parse_args()
     print(

@@ -10,10 +10,13 @@ $process = if ($pidValue) { Get-Process -Id $pidValue -ErrorAction SilentlyConti
 
 $archiveRows = if (Test-Path $archivePath) { (Import-Csv $archivePath).Count } else { 0 }
 $evaluationRows = if (Test-Path $evaluationPath) { (Import-Csv $evaluationPath).Count } else { 0 }
+$env:PYTHONPATH = Join-Path $repoRoot "src"
+$guardrail = python -m btc5m_bot.strategy_guardrail_cli
 
 [pscustomobject]@{
     running = [bool]$process
     pid = if ($process) { $process.Id } else { "" }
     archived_windows = $archiveRows
     evaluations = $evaluationRows
+    guardrail = $guardrail
 }

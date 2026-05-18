@@ -57,12 +57,12 @@
 
 ## Core metrics
 
-- forward_evaluations: 30
+- forward_evaluations: 31
 - forward_trades: 2
 - forward_win_rate: 1.0
 - forward_total_pnl_usd: 12.423176470588238
 - guardrail_stage: collecting
-- next_change_review_gap: {'evaluations_needed': 70, 'trades_needed': 28}
+- next_change_review_gap: {'evaluations_needed': 69, 'trades_needed': 28}
 - candidate_count: 3
 - review_ready_candidates: []
 - collecting_candidates: ['avoid_low_momentum_near_barrier', 'avoid_mid_abs_return_5m', 'edge_008']
@@ -75,28 +75,28 @@
 
 - filter_kind: avoid_low_momentum_near_barrier
 - stage: collecting
-- eligible_windows: 20
+- eligible_windows: 21
 - divergent_windows: 4
 - delta_pnl_usd: -9.264843137254903
-- next_review_gap: {'eligible_windows_needed': 10, 'divergent_windows_needed': 6}
+- next_review_gap: {'eligible_windows_needed': 9, 'divergent_windows_needed': 6}
 
 ### avoid_mid_abs_return_5m
 
 - filter_kind: avoid_mid_abs_return_5m
 - stage: collecting
-- eligible_windows: 18
+- eligible_windows: 19
 - divergent_windows: 1
 - delta_pnl_usd: 0.0
-- next_review_gap: {'eligible_windows_needed': 12, 'divergent_windows_needed': 9}
+- next_review_gap: {'eligible_windows_needed': 11, 'divergent_windows_needed': 9}
 
 ### edge_008
 
 - filter_kind: none
 - stage: collecting
-- eligible_windows: 23
+- eligible_windows: 24
 - divergent_windows: 1
 - delta_pnl_usd: 10.553
-- next_review_gap: {'eligible_windows_needed': 7, 'divergent_windows_needed': 9}
+- next_review_gap: {'eligible_windows_needed': 6, 'divergent_windows_needed': 9}
 
 ## Kill switch snapshot
 

@@ -28,10 +28,12 @@ class CanaryEnvelope:
 
 def build_canary_authorization_packet(
     envelope: CanaryEnvelope | None = None,
+    readiness_report: dict[str, Any] | None = None,
+    kill_switch_report: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     envelope = envelope or CanaryEnvelope()
-    readiness = build_canary_readiness_report()
-    kill_switch = build_canary_kill_switch_report()
+    readiness = readiness_report or build_canary_readiness_report()
+    kill_switch = kill_switch_report or build_canary_kill_switch_report()
     readiness_result = readiness["readiness"]
     kill_switch_result = kill_switch["assessment"]
     blockers = list(readiness_result["blockers"])

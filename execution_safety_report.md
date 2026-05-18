@@ -90,5 +90,3 @@ Ran 47 total tests: OK
 ## Mentor note
 
 The safety layer deliberately refuses live trading today. A high win-rate slice or a single profitable forward trade has no authority to bypass execution risk. The minimum bar is still forward evidence, frozen parameters, order-level capacity checks and circuit breakers all passing together.
-
-

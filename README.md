@@ -39,6 +39,9 @@ python -m btc5m_bot.execution_backtest_cli --windows 288 --min-confidence 0.65
 python -m btc5m_bot.extended_research_cli --windows 576
 python -m btc5m_bot.snapshot_recorder --iterations 12 --interval-seconds 5
 python -m btc5m_bot.snapshot_backtest_cli --windows 288
+.\scripts\start_snapshot_recorder.ps1
+.\scripts\status_snapshot_recorder.ps1
+.\scripts\stop_snapshot_recorder.ps1
 ```
 
 ## 当前阶段
@@ -70,6 +73,8 @@ python -m btc5m_bot.snapshot_backtest_cli --windows 288
 - 历史样本缓存
 - 快照驱动回测入口
 - 快照驱动回测复盘文档
+- 快照采集后台脚本
+- 快照采集运维文档
 
 下一步才会接：
 

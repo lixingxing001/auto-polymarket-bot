@@ -102,6 +102,13 @@ flowchart LR
 - 直接用当时的 best ask 与 ask size 判断能否成交
 - 相比真实成交代理，这更接近“当时我真的能看到什么、买到什么”
 
+## 快照采集运维
+
+- `start_snapshot_recorder.ps1` 启动隐藏后台进程
+- `status_snapshot_recorder.ps1` 查看运行状态和采集进度
+- `stop_snapshot_recorder.ps1` 停止后台进程
+- 后台进程遇到瞬时网络错误时继续运行，并把错误写入日志
+
 ## 暂时不做
 
 - 不先上多代理共识

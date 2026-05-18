@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -114,21 +115,53 @@ def capture_once(client: PolymarketPublicClient | None = None) -> dict:
     )
 
 
+def run_capture_loop(
+    iterations: int,
+    interval_seconds: float,
+    output: Path,
+    summary_output: Path,
+    continue_on_error: bool = False,
+) -> None:
+    index = 0
+    while iterations == 0 or index < iterations:
+        try:
+            row = capture_once()
+            append_snapshot(output, row)
+            print(row, flush=True)
+        except Exception as exc:  # noqa: BLE001
+            print(
+                {
+                    "captured_at": datetime.now(timezone.utc).isoformat(),
+                    "error": type(exc).__name__,
+                    "message": str(exc),
+                },
+                file=sys.stderr,
+                flush=True,
+            )
+            if not continue_on_error:
+                raise
+        index += 1
+        rebuild_window_summary(output, summary_output)
+        if iterations == 0 or index < iterations:
+            time.sleep(interval_seconds)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--iterations", type=int, default=1)
     parser.add_argument("--interval-seconds", type=float, default=5.0)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--summary-output", type=Path, default=DEFAULT_SUMMARY_OUTPUT)
+    parser.add_argument("--continue-on-error", action="store_true")
     args = parser.parse_args()
 
-    for index in range(args.iterations):
-        row = capture_once()
-        append_snapshot(args.output, row)
-        print(row)
-        if index < args.iterations - 1:
-            time.sleep(args.interval_seconds)
-    rebuild_window_summary(args.output, args.summary_output)
+    run_capture_loop(
+        iterations=args.iterations,
+        interval_seconds=args.interval_seconds,
+        output=args.output,
+        summary_output=args.summary_output,
+        continue_on_error=args.continue_on_error,
+    )
 
 
 if __name__ == "__main__":

@@ -33,6 +33,7 @@ python -m btc5m_bot.paper_once
 python -m btc5m_bot.paper_loop --iterations 4 --interval-seconds 15
 python -m btc5m_bot.paper_dry_run_cli
 python -m btc5m_bot.paper_loop --execution-dry-run --iterations 1
+python -m btc5m_bot.live_execution_cli
 python -m btc5m_bot.historical_cli --windows 48
 python -m btc5m_bot.reconcile_cli
 python -m btc5m_bot.train_cli --windows 288
@@ -107,6 +108,7 @@ python -m btc5m_bot.snapshot_backtest_cli --windows 288
 - 低信息窗口过滤研究入口
 - 执行安全预检查入口
 - 纸面订单 dry-run 入口
+- 默认拒单的实盘适配器接口
 
 下一步才会接：
 

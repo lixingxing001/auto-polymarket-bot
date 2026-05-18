@@ -39,6 +39,7 @@ python -m btc5m_bot.execution_backtest_cli --windows 288 --min-confidence 0.65
 python -m btc5m_bot.extended_research_cli --windows 576
 python -m btc5m_bot.snapshot_recorder --iterations 12 --interval-seconds 5
 python -m btc5m_bot.ws_snapshot_recorder --max-windows 1 --max-seconds-per-window 20
+python -m btc5m_bot.snapshot_coverage_cli --windows 288 --snapshots data\ws_orderbook_snapshots.csv
 python -m btc5m_bot.snapshot_backtest_cli --windows 288
 .\scripts\start_snapshot_recorder.ps1
 .\scripts\status_snapshot_recorder.ps1
@@ -81,6 +82,7 @@ python -m btc5m_bot.snapshot_backtest_cli --windows 288
 - 快照采集运维文档
 - WebSocket 实时盘口采集器
 - WebSocket 快照采集复盘文档
+- 快照覆盖率检查入口
 
 下一步才会接：
 

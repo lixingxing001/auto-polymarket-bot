@@ -26,7 +26,7 @@ market data -> features -> signal model -> edge gate -> risk manager -> paper/li
 ## 快速开始
 
 ```powershell
-python -m unittest discover -s tests
+$env:PYTHONPATH="src"; python -m unittest discover -s tests
 python -m btc5m_bot.cli
 python -m btc5m_bot.live_snapshot
 python -m btc5m_bot.paper_once
@@ -38,10 +38,14 @@ python -m btc5m_bot.execution_backtest_cli --windows 48
 python -m btc5m_bot.execution_backtest_cli --windows 288 --min-confidence 0.65
 python -m btc5m_bot.extended_research_cli --windows 576
 python -m btc5m_bot.snapshot_recorder --iterations 12 --interval-seconds 5
+python -m btc5m_bot.ws_snapshot_recorder --max-windows 1 --max-seconds-per-window 20
 python -m btc5m_bot.snapshot_backtest_cli --windows 288
 .\scripts\start_snapshot_recorder.ps1
 .\scripts\status_snapshot_recorder.ps1
 .\scripts\stop_snapshot_recorder.ps1
+.\scripts\start_ws_snapshot_recorder.ps1
+.\scripts\status_ws_snapshot_recorder.ps1
+.\scripts\stop_ws_snapshot_recorder.ps1
 ```
 
 ## 当前阶段
@@ -75,9 +79,10 @@ python -m btc5m_bot.snapshot_backtest_cli --windows 288
 - 快照驱动回测复盘文档
 - 快照采集后台脚本
 - 快照采集运维文档
+- WebSocket 实时盘口采集器
+- WebSocket 快照采集复盘文档
 
 下一步才会接：
 
-- WebSocket 实时行情
 - 纸面交易日志
 - 实盘执行

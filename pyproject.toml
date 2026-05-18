@@ -7,6 +7,9 @@ name = "btc5m-bot"
 version = "0.1.0"
 description = "Research scaffold for a BTC 5-minute Polymarket trading bot"
 requires-python = ">=3.11"
+dependencies = [
+    "websockets>=16.0",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]

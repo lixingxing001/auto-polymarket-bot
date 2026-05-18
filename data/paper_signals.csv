@@ -1,2 +1,0 @@
-timestamp,slug,title,seconds_to_close,prob_up,up_ask,down_ask,up_liquidity_usd,down_liquidity_usd,decision,edge,size_usd,reason,features_json
-2026-05-18T10:16:18.687689+00:00,btc-updown-5m-1779099300,"Bitcoin Up or Down - May 18, 6:15AM-6:20AM ET",221,0.491208,0.39,0.62,39.4641,81.8152,UP,0.084555,3.94641,edge_passed,"{""return_1m"":0.0,""return_5m"":-0.0009409494016668907,""realized_vol_5m"":0.00028355452626636766,""trade_imbalance_30s"":0.0,""distance_to_barrier_bps"":-2.111351643011572,""seconds_to_close"":221}"

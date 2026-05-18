@@ -1,0 +1,8 @@
+__pycache__/
+.pytest_cache/
+.venv/
+.env
+.idea/
+data/
+task_plan.md
+notes.md

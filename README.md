@@ -1,0 +1,68 @@
+# BTC 5m Bot
+
+一个面向 Polymarket `BTC Up or Down - 5 Minutes` 市场的研究型交易机器人骨架。
+
+## 当前目标
+
+先验证三件事：
+
+1. 5 分钟方向信号在样本外是否存在
+2. 扣除手续费、滑点、延迟后是否仍有正期望
+3. 风控是否能让机器人在没有优势时保持沉默
+
+## 设计原则
+
+- 先纸面交易，后实盘
+- 先证明单一信号有效，再考虑组合
+- 先优化期望值，再看胜率
+- 先限制损失，再讨论放大利润
+
+## 模块
+
+```text
+market data -> features -> signal model -> edge gate -> risk manager -> paper/live execution
+```
+
+## 快速开始
+
+```powershell
+python -m unittest discover -s tests
+python -m btc5m_bot.cli
+python -m btc5m_bot.live_snapshot
+python -m btc5m_bot.paper_once
+python -m btc5m_bot.paper_loop --iterations 4 --interval-seconds 15
+python -m btc5m_bot.historical_cli --windows 48
+python -m btc5m_bot.reconcile_cli
+python -m btc5m_bot.train_cli --windows 288
+python -m btc5m_bot.execution_backtest_cli --windows 48
+```
+
+## 当前阶段
+
+当前仓库只包含最小研究骨架：
+
+- 领域模型
+- 特征结构
+- 一个可替换的基线信号模型
+- 风控与纸面成交决策
+- 当前 5 分钟 BTC 市场发现
+- Polymarket 订单簿快照读取
+- Coinbase 公共分钟级行情读取
+- 单次纸面交易决策
+- 可落 CSV 的纸面信号循环
+- 历史标签数据集构建
+- 基线方向评估
+- 纸面信号结算与前向收益统计
+- 训练型逻辑回归与时间切分评估
+- 走样本外 walk-forward 评估
+- Coinbase 逐笔成交与 L1 盘口微结构特征
+- 基于真实成交的可执行价格代理回测
+- 回测结果复盘文档
+- Polymarket 历史价格特征与市场基线
+- market-aware 模型复盘文档
+
+下一步才会接：
+
+- WebSocket 实时行情
+- 纸面交易日志
+- 实盘执行

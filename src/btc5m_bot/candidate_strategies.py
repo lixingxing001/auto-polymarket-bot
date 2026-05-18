@@ -26,6 +26,8 @@ class CandidateStrategy:
     max_fill_delay_seconds: int
     filter_kind: str = "none"
     min_abs_return_1m: float | None = None
+    min_abs_return_5m: float | None = None
+    max_abs_return_5m: float | None = None
     min_abs_distance_to_barrier_bps: float | None = None
     status: str = "registered"
 
@@ -73,6 +75,8 @@ def load_candidate_registry(path: Path) -> dict[str, CandidateStrategy]:
             max_fill_delay_seconds=int(row["max_fill_delay_seconds"]),
             filter_kind=row.get("filter_kind", "none") or "none",
             min_abs_return_1m=_optional_float(row.get("min_abs_return_1m", "")),
+            min_abs_return_5m=_optional_float(row.get("min_abs_return_5m", "")),
+            max_abs_return_5m=_optional_float(row.get("max_abs_return_5m", "")),
             min_abs_distance_to_barrier_bps=_optional_float(
                 row.get("min_abs_distance_to_barrier_bps", "")
             ),
@@ -94,6 +98,8 @@ def register_candidate(
     max_fill_delay_seconds: int,
     filter_kind: str = "none",
     min_abs_return_1m: float | None = None,
+    min_abs_return_5m: float | None = None,
+    max_abs_return_5m: float | None = None,
     min_abs_distance_to_barrier_bps: float | None = None,
     registered_at: datetime | None = None,
 ) -> CandidateStrategy:
@@ -114,6 +120,8 @@ def register_candidate(
         max_fill_delay_seconds=max_fill_delay_seconds,
         filter_kind=filter_kind,
         min_abs_return_1m=min_abs_return_1m,
+        min_abs_return_5m=min_abs_return_5m,
+        max_abs_return_5m=max_abs_return_5m,
         min_abs_distance_to_barrier_bps=min_abs_distance_to_barrier_bps,
     )
     write_candidate_registry(path, tuple([*registry.values(), candidate]))
@@ -135,6 +143,16 @@ def write_candidate_registry(path: Path, candidates: tuple[CandidateStrategy, ..
                     "min_abs_return_1m": (
                         candidate.min_abs_return_1m
                         if candidate.min_abs_return_1m is not None
+                        else ""
+                    ),
+                    "min_abs_return_5m": (
+                        candidate.min_abs_return_5m
+                        if candidate.min_abs_return_5m is not None
+                        else ""
+                    ),
+                    "max_abs_return_5m": (
+                        candidate.max_abs_return_5m
+                        if candidate.max_abs_return_5m is not None
                         else ""
                     ),
                     "min_abs_distance_to_barrier_bps": (
@@ -268,14 +286,21 @@ def candidate_allows_sample(
 ) -> bool:
     if candidate.filter_kind == "none":
         return True
-    if candidate.filter_kind != "avoid_low_momentum_near_barrier":
-        raise ValueError(f"unsupported candidate filter: {candidate.filter_kind}")
-    min_abs_return_1m = candidate.min_abs_return_1m or 0.0
-    min_abs_distance = candidate.min_abs_distance_to_barrier_bps or 0.0
-    return not (
-        abs(sample.features.return_1m) <= min_abs_return_1m
-        and abs(sample.features.distance_to_barrier_bps) <= min_abs_distance
-    )
+    if candidate.filter_kind == "avoid_low_momentum_near_barrier":
+        min_abs_return_1m = candidate.min_abs_return_1m or 0.0
+        min_abs_distance = candidate.min_abs_distance_to_barrier_bps or 0.0
+        return not (
+            abs(sample.features.return_1m) <= min_abs_return_1m
+            and abs(sample.features.distance_to_barrier_bps) <= min_abs_distance
+        )
+    if candidate.filter_kind == "avoid_mid_abs_return_5m":
+        min_abs_return_5m = candidate.min_abs_return_5m
+        max_abs_return_5m = candidate.max_abs_return_5m
+        if min_abs_return_5m is None or max_abs_return_5m is None:
+            raise ValueError("mid return filter requires min and max abs return 5m")
+        abs_return_5m = abs(sample.features.return_5m)
+        return not (min_abs_return_5m < abs_return_5m <= max_abs_return_5m)
+    raise ValueError(f"unsupported candidate filter: {candidate.filter_kind}")
 
 
 def _optional_float(value: str | None) -> float | None:

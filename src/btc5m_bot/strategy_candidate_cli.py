@@ -51,6 +51,8 @@ def main() -> None:
     )
     register_parser.add_argument("--filter-kind", default="none")
     register_parser.add_argument("--min-abs-return-1m", type=float, default=None)
+    register_parser.add_argument("--min-abs-return-5m", type=float, default=None)
+    register_parser.add_argument("--max-abs-return-5m", type=float, default=None)
     register_parser.add_argument(
         "--min-abs-distance-to-barrier-bps",
         type=float,
@@ -87,6 +89,8 @@ def main() -> None:
             max_fill_delay_seconds=args.max_delay_seconds,
             filter_kind=args.filter_kind,
             min_abs_return_1m=args.min_abs_return_1m,
+            min_abs_return_5m=args.min_abs_return_5m,
+            max_abs_return_5m=args.max_abs_return_5m,
             min_abs_distance_to_barrier_bps=args.min_abs_distance_to_barrier_bps,
         )
         print(candidate.__dict__)

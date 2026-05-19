@@ -29,6 +29,7 @@ class CandidateStrategy:
     min_abs_return_5m: float | None = None
     max_abs_return_5m: float | None = None
     min_abs_distance_to_barrier_bps: float | None = None
+    max_abs_distance_to_barrier_bps: float | None = None
     status: str = "registered"
 
     def to_config(self) -> ExecutionBacktestConfig:
@@ -80,6 +81,9 @@ def load_candidate_registry(path: Path) -> dict[str, CandidateStrategy]:
             min_abs_distance_to_barrier_bps=_optional_float(
                 row.get("min_abs_distance_to_barrier_bps", "")
             ),
+            max_abs_distance_to_barrier_bps=_optional_float(
+                row.get("max_abs_distance_to_barrier_bps", "")
+            ),
             status=row["status"],
         )
         for row in rows
@@ -101,6 +105,7 @@ def register_candidate(
     min_abs_return_5m: float | None = None,
     max_abs_return_5m: float | None = None,
     min_abs_distance_to_barrier_bps: float | None = None,
+    max_abs_distance_to_barrier_bps: float | None = None,
     registered_at: datetime | None = None,
 ) -> CandidateStrategy:
     registry = load_candidate_registry(path)
@@ -123,6 +128,7 @@ def register_candidate(
         min_abs_return_5m=min_abs_return_5m,
         max_abs_return_5m=max_abs_return_5m,
         min_abs_distance_to_barrier_bps=min_abs_distance_to_barrier_bps,
+        max_abs_distance_to_barrier_bps=max_abs_distance_to_barrier_bps,
     )
     write_candidate_registry(path, tuple([*registry.values(), candidate]))
     return candidate
@@ -158,6 +164,11 @@ def write_candidate_registry(path: Path, candidates: tuple[CandidateStrategy, ..
                     "min_abs_distance_to_barrier_bps": (
                         candidate.min_abs_distance_to_barrier_bps
                         if candidate.min_abs_distance_to_barrier_bps is not None
+                        else ""
+                    ),
+                    "max_abs_distance_to_barrier_bps": (
+                        candidate.max_abs_distance_to_barrier_bps
+                        if candidate.max_abs_distance_to_barrier_bps is not None
                         else ""
                     ),
                 }
@@ -300,6 +311,13 @@ def candidate_allows_sample(
             raise ValueError("mid return filter requires min and max abs return 5m")
         abs_return_5m = abs(sample.features.return_5m)
         return not (min_abs_return_5m < abs_return_5m <= max_abs_return_5m)
+    if candidate.filter_kind == "avoid_mid_distance_to_barrier_bps":
+        min_abs_distance = candidate.min_abs_distance_to_barrier_bps
+        max_abs_distance = candidate.max_abs_distance_to_barrier_bps
+        if min_abs_distance is None or max_abs_distance is None:
+            raise ValueError("mid distance filter requires min and max abs distance")
+        abs_distance = abs(sample.features.distance_to_barrier_bps)
+        return not (min_abs_distance < abs_distance <= max_abs_distance)
     raise ValueError(f"unsupported candidate filter: {candidate.filter_kind}")
 
 

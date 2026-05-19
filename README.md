@@ -59,6 +59,7 @@ python -m btc5m_bot.snapshot_forward_loop --iterations 1
 python -m btc5m_bot.strategy_guardrail_cli
 python -m btc5m_bot.strategy_candidate_cli list
 python -m btc5m_bot.strategy_candidate_cli compare --candidate-id edge_008
+python -m btc5m_bot.strategy_candidate_cli compare --candidate-id avoid_mid_distance_to_barrier_2_6bps
 python -m btc5m_bot.candidate_evidence_cli
 python -m btc5m_bot.candidate_change_review_cli
 python -m btc5m_bot.recent_loss_diagnostics_cli

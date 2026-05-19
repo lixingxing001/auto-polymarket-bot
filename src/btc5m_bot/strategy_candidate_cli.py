@@ -58,6 +58,11 @@ def main() -> None:
         type=float,
         default=None,
     )
+    register_parser.add_argument(
+        "--max-abs-distance-to-barrier-bps",
+        type=float,
+        default=None,
+    )
 
     list_parser = subparsers.add_parser("list")
     list_parser.add_argument("--registry", type=Path, default=DEFAULT_REGISTRY)
@@ -92,6 +97,7 @@ def main() -> None:
             min_abs_return_5m=args.min_abs_return_5m,
             max_abs_return_5m=args.max_abs_return_5m,
             min_abs_distance_to_barrier_bps=args.min_abs_distance_to_barrier_bps,
+            max_abs_distance_to_barrier_bps=args.max_abs_distance_to_barrier_bps,
         )
         print(candidate.__dict__)
         return

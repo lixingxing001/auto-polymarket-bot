@@ -27,10 +27,10 @@
 - authorization_status: NOT_READY
 - kill_switch_active: False
 - real_adapter_unlock_allowed: False
-- forward_evaluations: 141
-- forward_trades: 20
-- forward_total_pnl_usd: 32.570335803379756
-- review_ready_candidates: ['avoid_low_momentum_near_barrier', 'avoid_mid_abs_return_5m']
+- forward_evaluations: 180
+- forward_trades: 26
+- forward_total_pnl_usd: 40.23726449326367
+- review_ready_candidates: ['avoid_low_momentum_near_barrier', 'avoid_mid_abs_return_5m', 'edge_008']
 
 ## Boundary
 

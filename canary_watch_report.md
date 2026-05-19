@@ -1,6 +1,6 @@
 # Canary Watch Report
 
-- checked_at: 2026-05-19T02:51:18.795772+00:00
+- checked_at: 2026-05-19T06:02:01.659892+00:00
 - ready: False
 - next_action: collect_more_forward_evidence
 
@@ -8,11 +8,11 @@
 
 - blockers: ['guardrail_stage_review_only', 'insufficient_forward_trades', 'forward_win_rate_below_canary_floor']
 - warnings: ['candidate_evidence_still_collecting']
-- forward_evaluations: 141
-- forward_trades: 20
-- forward_win_rate: 0.4
-- forward_total_pnl_usd: 32.570335803379756
-- next_change_review_gap: {'evaluations_needed': 0, 'trades_needed': 10}
+- forward_evaluations: 180
+- forward_trades: 26
+- forward_win_rate: 0.38461538461538464
+- forward_total_pnl_usd: 40.23726449326367
+- next_change_review_gap: {'evaluations_needed': 0, 'trades_needed': 4}
 
 ## Preflight
 
@@ -23,10 +23,10 @@
 ## Candidate change review
 
 - status: DEFER_CHANGE
-- selected_candidate_id: avoid_mid_abs_return_5m
+- selected_candidate_id: avoid_low_momentum_near_barrier
 - change_allowed: False
-- blockers: ['guardrail_stage_review_only']
-- warnings: ['selected_candidate_win_rate_below_canary_floor']
+- blockers: ['guardrail_stage_review_only', 'no_candidate_passed_change_quality']
+- warnings: []
 
 ## Boundary
 

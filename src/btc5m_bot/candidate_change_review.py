@@ -130,6 +130,7 @@ def decide_candidate_change(
         reviews,
         key=lambda item: (
             item.change_quality_passed,
+            item.review_ready,
             item.metrics["delta_pnl_usd"],
             item.metrics["candidate_total_pnl_usd"],
         ),
@@ -215,6 +216,7 @@ def render_candidate_change_review_markdown(report: dict[str, Any]) -> str:
         report["candidate_reviews"],
         key=lambda item: (
             item["change_quality_passed"],
+            item["review_ready"],
             item["metrics"]["delta_pnl_usd"],
         ),
         reverse=True,

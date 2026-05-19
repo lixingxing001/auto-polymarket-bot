@@ -88,6 +88,27 @@ class CandidateChangeReviewTests(unittest.TestCase):
         self.assertEqual(decision.selected_candidate_id, "stronger")
         self.assertTrue(decision.change_allowed)
 
+    def test_decision_prefers_review_ready_over_zero_evidence_candidate(self) -> None:
+        review_ready_negative = review_candidate_change(
+            candidate_id="review_ready_negative",
+            filter_kind="none",
+            rows=[_avoid_loss_row(active_pnl=1.0) for _ in range(30)],
+        )
+        zero_evidence = review_candidate_change(
+            candidate_id="zero_evidence",
+            filter_kind="none",
+            rows=[],
+        )
+        decision = decide_candidate_change(
+            guardrails={
+                "stage": "review_only",
+                "change_review_ready": False,
+            },
+            reviews=(zero_evidence, review_ready_negative),
+        )
+        self.assertEqual(decision.selected_candidate_id, "review_ready_negative")
+        self.assertIn("no_candidate_passed_change_quality", decision.blockers)
+
     def test_write_report(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             base = Path(tmp)

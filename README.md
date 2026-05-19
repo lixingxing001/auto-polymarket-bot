@@ -62,6 +62,7 @@ python -m btc5m_bot.strategy_candidate_cli set-status --candidate-id edge_008 --
 python -m btc5m_bot.strategy_candidate_cli compare --candidate-id edge_008
 python -m btc5m_bot.strategy_candidate_cli compare --candidate-id avoid_mid_distance_to_barrier_2_6bps
 python -m btc5m_bot.candidate_evidence_cli
+python -m btc5m_bot.candidate_evidence_progress_cli
 python -m btc5m_bot.candidate_change_review_cli
 python -m btc5m_bot.candidate_lifecycle_cli
 python -m btc5m_bot.candidate_generation_cli
@@ -123,6 +124,7 @@ python -m btc5m_bot.snapshot_backtest_cli --windows 288
 - 策略门控与参数冻结审计入口
 - 候选策略登记与受控对照入口
 - 候选策略证据成熟度审计入口
+- 候选策略证据进度与 ETA 报告入口
 - 候选策略变更审查入口
 - 候选策略生命周期审查入口
 - 候选策略状态管理与下一代候选生成入口

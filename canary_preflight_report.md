@@ -27,7 +27,7 @@
 - authorization_status: NOT_READY
 - kill_switch_active: False
 - real_adapter_unlock_allowed: False
-- forward_evaluations: 204
+- forward_evaluations: 206
 - forward_trades: 30
 - forward_total_pnl_usd: 48.098698059697234
 - review_ready_candidates: []

@@ -16,7 +16,7 @@
 
 ## Core metrics
 
-- forward_evaluations: 204
+- forward_evaluations: 206
 - forward_trades: 30
 - forward_win_rate: 0.43333333333333335
 - forward_total_pnl_usd: 48.098698059697234
@@ -41,7 +41,7 @@
 - change_quality_passed: False
 - change_blockers: ['delta_pnl_not_positive']
 - eligible_windows: 87
-- divergent_windows: 27
+- divergent_windows: 26
 - delta_pnl_usd: 0.0
 - next_review_gap: {'eligible_windows_needed': 0, 'divergent_windows_needed': 0}
 
@@ -52,10 +52,10 @@
 - active: False
 - stage: review_ready
 - change_quality_passed: False
-- change_blockers: ['delta_pnl_not_positive']
+- change_blockers: ['delta_pnl_not_positive', 'candidate_pnl_not_positive']
 - eligible_windows: 87
-- divergent_windows: 33
-- delta_pnl_usd: -13.560555555555553
+- divergent_windows: 34
+- delta_pnl_usd: -13.560555555555558
 - next_review_gap: {'eligible_windows_needed': 0, 'divergent_windows_needed': 0}
 
 ### avoid_mid_distance_to_barrier_2_6bps

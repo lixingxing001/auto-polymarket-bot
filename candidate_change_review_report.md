@@ -23,7 +23,7 @@
 
 ## Forward snapshot
 
-- evaluations: 204
+- evaluations: 206
 - traded_rows: 30
 - win_rate: 0.43333333333333335
 - total_pnl_usd: 48.098698059697234

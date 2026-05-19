@@ -10,6 +10,10 @@ from typing import Any
 from .canary_monitor import DEFAULT_MONITOR_REPORT, run_canary_monitor
 from .canary_preflight import DEFAULT_CANARY_PREFLIGHT_REPORT, write_canary_preflight_report
 from .canary_readiness import DEFAULT_CANARY_REPORT
+from .candidate_evidence_progress import (
+    DEFAULT_PROGRESS_REPORT,
+    write_candidate_evidence_progress_report,
+)
 from .candidate_change_review import (
     DEFAULT_CHANGE_REVIEW_REPORT,
     write_candidate_change_review_report,
@@ -24,6 +28,7 @@ def run_canary_watch_once(
     readiness_output_path: Path = DEFAULT_CANARY_REPORT,
     preflight_output_path: Path = DEFAULT_CANARY_PREFLIGHT_REPORT,
     change_review_output_path: Path = DEFAULT_CHANGE_REVIEW_REPORT,
+    evidence_progress_output_path: Path = DEFAULT_PROGRESS_REPORT,
     watch_output_path: Path = DEFAULT_CANARY_WATCH_REPORT,
 ) -> dict[str, Any]:
     monitor = run_canary_monitor(
@@ -32,12 +37,16 @@ def run_canary_watch_once(
     )
     preflight = write_canary_preflight_report(output_path=preflight_output_path)
     change_review = write_candidate_change_review_report(output_path=change_review_output_path)
+    evidence_progress = write_candidate_evidence_progress_report(
+        output_path=evidence_progress_output_path,
+    )
     report = {
         "checked_at": datetime.now(timezone.utc).isoformat(),
         "monitor": monitor["monitor"],
         "readiness": monitor["readiness"]["readiness"],
         "preflight": preflight["assessment"],
         "change_review": change_review["decision"],
+        "evidence_progress": evidence_progress,
     }
     watch_output_path.write_text(render_canary_watch_markdown(report), encoding="utf-8")
     return report
@@ -48,6 +57,8 @@ def render_canary_watch_markdown(report: dict[str, Any]) -> str:
     readiness = report["readiness"]
     preflight = report["preflight"]
     change_review = report["change_review"]
+    evidence_progress = report.get("evidence_progress", {})
+    progress_summary = evidence_progress.get("summary", {})
     lines = [
         "# Canary Watch Report",
         "",
@@ -78,6 +89,14 @@ def render_canary_watch_markdown(report: dict[str, Any]) -> str:
         f"- change_allowed: {change_review['change_allowed']}",
         f"- blockers: {list(change_review['blockers'])}",
         f"- warnings: {list(change_review['warnings'])}",
+        "",
+        "## Candidate evidence progress",
+        "",
+        f"- next_review_candidate_id: {evidence_progress.get('next_review_candidate_id', 'none')}",
+        f"- review_ready_candidates: {progress_summary.get('review_ready_candidates', [])}",
+        f"- change_quality_passed_candidates: {progress_summary.get('change_quality_passed_candidates', [])}",
+        f"- needs_divergent_windows: {progress_summary.get('needs_divergent_windows', [])}",
+        f"- waiting_for_first_divergence: {progress_summary.get('waiting_for_first_divergence', [])}",
         "",
         "## Boundary",
         "",

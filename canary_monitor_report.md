@@ -1,6 +1,6 @@
 # Canary Monitor Report
 
-- checked_at: 2026-05-19T08:07:09.067301+00:00
+- checked_at: 2026-05-19T08:16:34.721290+00:00
 - ready: False
 - next_action: wait_for_candidate_evidence_or_register_new_candidate
 - readiness_report_path: canary_readiness_report.md
@@ -17,7 +17,7 @@
 
 ## Evidence gap
 
-- forward_evaluations: 204
+- forward_evaluations: 206
 - forward_trades: 30
 - next_change_review_gap: {'evaluations_needed': 0, 'trades_needed': 0}
 - review_ready_candidates: []

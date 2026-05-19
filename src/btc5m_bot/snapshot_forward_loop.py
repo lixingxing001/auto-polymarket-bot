@@ -16,6 +16,7 @@ from .historical import build_recent_historical_dataset
 from .settled_snapshot_archive import load_archived_windows
 from .snapshot_backtest import load_snapshot_quotes
 from .snapshot_forward_eval_cli import run_snapshot_forward_eval
+from .active_strategy import DEFAULT_ACTIVE_STRATEGY_STATE
 from .strategy_guardrails import ACTIVE_STRATEGY_PARAMETERS
 
 
@@ -33,6 +34,7 @@ def run_loop(
     max_delay_seconds: int,
     candidate_registry: Path | None = None,
     candidate_output_dir: Path | None = None,
+    strategy_state_path: Path | None = DEFAULT_ACTIVE_STRATEGY_STATE,
     continue_on_error: bool = False,
 ) -> None:
     index = 0
@@ -48,6 +50,7 @@ def run_loop(
                 min_edge=min_edge,
                 stake_usd=stake_usd,
                 max_delay_seconds=max_delay_seconds,
+                strategy_state_path=strategy_state_path,
             )
             candidate_summaries = {}
             if candidate_registry is not None and candidate_output_dir is not None:
@@ -131,6 +134,8 @@ def main() -> None:
         type=Path,
         default=Path("data/candidate_comparisons"),
     )
+    parser.add_argument("--strategy-state", type=Path, default=DEFAULT_ACTIVE_STRATEGY_STATE)
+    parser.add_argument("--ignore-strategy-state", action="store_true")
     parser.add_argument("--continue-on-error", action="store_true")
     args = parser.parse_args()
     run_loop(
@@ -147,6 +152,7 @@ def main() -> None:
         max_delay_seconds=args.max_delay_seconds,
         candidate_registry=args.candidate_registry,
         candidate_output_dir=args.candidate_output_dir,
+        strategy_state_path=None if args.ignore_strategy_state else args.strategy_state,
         continue_on_error=args.continue_on_error,
     )
 

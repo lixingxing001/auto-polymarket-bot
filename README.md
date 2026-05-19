@@ -45,6 +45,8 @@ python -m btc5m_bot.real_adapter_gate_cli
 python -m btc5m_bot.canary_preflight_cli
 python -m btc5m_bot.canary_watch_loop --iterations 1
 python -m btc5m_bot.canary_dashboard_cli --output canary_dashboard.html
+python -m btc5m_bot.current_strategy_readiness_cli
+python -m btc5m_bot.candidate_autopilot_cli
 python -m btc5m_bot.historical_cli --windows 48
 python -m btc5m_bot.reconcile_cli
 python -m btc5m_bot.train_cli --windows 288
@@ -154,6 +156,9 @@ $env:PYTHONPATH="src"; python -m btc5m_bot.canary_dashboard_cli --output canary_
 - canary 最终预检聚合入口
 - canary 本地 5 分钟 watchdog
 - canary HTML 仪表盘生成入口
+- 纸面 active strategy 状态文件与版本化前向账本
+- 当前纸面策略 readiness 报告入口
+- 候选策略 autopilot 入口，默认只允许更新纸面策略状态
 - canary 极小金额运行手册
 
 下一步才会接：

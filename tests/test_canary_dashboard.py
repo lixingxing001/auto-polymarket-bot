@@ -35,12 +35,14 @@ class CanaryDashboardTests(unittest.TestCase):
                 window_summary_path=base / "missing_windows.csv",
                 settled_windows_path=base / "missing_settled.csv",
                 forward_ledger_path=base / "missing_forward.csv",
+                strategy_state_path=base / "missing_strategy.json",
             )
             rendered = output.read_text(encoding="utf-8")
 
         self.assertFalse(data["readiness"]["ready"])
         self.assertIn("BTC Polymarket Canary Dashboard", rendered)
         self.assertIn("真实下单禁用", rendered)
+        self.assertIn("当前纸面策略版本", rendered)
 
 
 def _dashboard_data() -> dict:
@@ -76,6 +78,21 @@ def _dashboard_data() -> dict:
             "delta_pnl_usd": 11.76,
         },
         "snapshot_status": {"latest_captured_at": "2026-05-19T10:05:55+00:00"},
+        "current_strategy_readiness": {
+            "ready": False,
+            "blockers": ["insufficient_current_strategy_trades"],
+            "metrics": {
+                "current_strategy_evaluations": 2,
+                "current_strategy_trades": 1,
+                "current_strategy_win_rate": 1.0,
+                "current_strategy_total_pnl_usd": 5.37,
+            },
+        },
+        "current_strategy_state": {
+            "source_candidate_id": "baseline",
+            "filter_kind": "none",
+            "activated_at": "2026-05-19T10:00:00+00:00",
+        },
         "files": {
             "snapshots": {"rows": 55466, "latest": {"slug": "s1"}},
             "window_summary": {"rows": 226, "latest": {"slug": "s2"}},

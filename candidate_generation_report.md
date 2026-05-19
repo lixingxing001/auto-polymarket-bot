@@ -7,10 +7,10 @@
 
 ## Current forward state
 
-- forward_evaluations: 204
-- forward_trades: 30
-- forward_win_rate: 43.3%
-- forward_total_pnl_usd: 48.10
+- forward_evaluations: 303
+- forward_trades: 49
+- forward_win_rate: 42.9%
+- forward_total_pnl_usd: -25.74
 
 ## Diagnostic flags
 
@@ -22,15 +22,11 @@
 
 | candidate_id | filter_kind | action | source | trades | win_rate | pnl |
 |---|---:|---:|---:|---:|---:|---:|
-| avoid_trade_against_1m_momentum | avoid_trade_against_1m_momentum | collect_prospective_evidence | trade_vs_1m_momentum=against_momentum | 7 | 14.3% | -18.39 |
-| avoid_trade_against_5m_momentum | avoid_trade_against_5m_momentum | collect_prospective_evidence | trade_vs_5m_momentum=against_momentum | 6 | 16.7% | -48.10 |
-| confidence_070 | none | collect_prospective_evidence | confidence=0.65-0.70 | 5 | 20.0% | -34.01 |
+| avoid_trade_against_1m_momentum | avoid_trade_against_1m_momentum | collect_prospective_evidence | trade_vs_1m_momentum=against_momentum | 4 | 0.0% | -42.27 |
 
 ## Next commands
 
 - `python -m btc5m_bot.strategy_candidate_cli compare --candidate-id avoid_trade_against_1m_momentum`
-- `python -m btc5m_bot.strategy_candidate_cli compare --candidate-id avoid_trade_against_5m_momentum`
-- `python -m btc5m_bot.strategy_candidate_cli compare --candidate-id confidence_070`
 
 ## Boundary
 

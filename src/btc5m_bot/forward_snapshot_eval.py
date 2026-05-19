@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from datetime import timedelta
 from pathlib import Path
 
+from .active_strategy import ActiveStrategyState, active_strategy_allows_trade
 from .execution_backtest import ExecutionBacktestConfig
 from .historical import HistoricalSample
 from .learning import sample_to_features, train_logistic_regression
@@ -23,6 +24,10 @@ class ForwardSnapshotEvaluation:
     edge: float | None
     pnl_usd: float | None
     fill_delay_seconds: int | None
+    market_end_time: str = ""
+    active_strategy_source_candidate_id: str = "baseline"
+    active_strategy_filter_kind: str = "none"
+    active_strategy_activated_at: str = ""
 
 
 def load_forward_evaluations(path: Path) -> dict[str, ForwardSnapshotEvaluation]:
@@ -31,19 +36,31 @@ def load_forward_evaluations(path: Path) -> dict[str, ForwardSnapshotEvaluation]
     with path.open(newline="", encoding="utf-8") as handle:
         rows = list(csv.DictReader(handle))
     return {
-        row["slug"]: ForwardSnapshotEvaluation(
-            slug=row["slug"],
-            label=row["label"],
-            forecast_prob_up=float(row["forecast_prob_up"]),
-            decision=row["decision"],
-            reason=row["reason"],
-            entry_price=_optional_float(row["entry_price"]),
-            edge=_optional_float(row["edge"]),
-            pnl_usd=_optional_float(row["pnl_usd"]),
-            fill_delay_seconds=_optional_int(row["fill_delay_seconds"]),
-        )
+        row["slug"]: _parse_forward_evaluation_row(row)
         for row in rows
     }
+
+
+def _parse_forward_evaluation_row(row: dict[str, str]) -> ForwardSnapshotEvaluation:
+    market_end_time = row.get("market_end_time", "")
+    source = row.get("active_strategy_source_candidate_id", "")
+    if not source or (source == "baseline" and not market_end_time):
+        source = "legacy_unversioned"
+    return ForwardSnapshotEvaluation(
+        slug=row["slug"],
+        label=row["label"],
+        forecast_prob_up=float(row["forecast_prob_up"]),
+        decision=row["decision"],
+        reason=row["reason"],
+        entry_price=_optional_float(row["entry_price"]),
+        edge=_optional_float(row["edge"]),
+        pnl_usd=_optional_float(row["pnl_usd"]),
+        fill_delay_seconds=_optional_int(row["fill_delay_seconds"]),
+        market_end_time=market_end_time,
+        active_strategy_source_candidate_id=source,
+        active_strategy_filter_kind=row.get("active_strategy_filter_kind", "") or "none",
+        active_strategy_activated_at=row.get("active_strategy_activated_at", ""),
+    )
 
 
 def evaluate_settled_snapshot_windows(
@@ -53,6 +70,7 @@ def evaluate_settled_snapshot_windows(
     output_path: Path,
     min_train_size: int = 200,
     config: ExecutionBacktestConfig | None = None,
+    active_strategy_state: ActiveStrategyState | None = None,
 ) -> dict:
     config = config or ExecutionBacktestConfig(min_confidence=0.65)
     existing = load_forward_evaluations(output_path)
@@ -61,6 +79,13 @@ def evaluate_settled_snapshot_windows(
     new_rows: list[ForwardSnapshotEvaluation] = []
     skipped_missing_sample = 0
     skipped_insufficient_training = 0
+    strategy_source = (
+        active_strategy_state.source_candidate_id if active_strategy_state else "baseline"
+    )
+    strategy_filter = active_strategy_state.filter_kind if active_strategy_state else "none"
+    strategy_activated_at = (
+        active_strategy_state.activated_at.isoformat() if active_strategy_state else ""
+    )
 
     for window in sorted(archived_windows, key=lambda item: item.market_end_time):
         if window.slug in existing:
@@ -93,6 +118,17 @@ def evaluate_settled_snapshot_windows(
             forecast_prob_up=forecast_prob_up,
             config=config,
         )
+        if (
+            trade is not None
+            and active_strategy_state is not None
+            and not active_strategy_allows_trade(
+                active_strategy_state,
+                sample.features,
+                trade.decision,
+            )
+        ):
+            trade = None
+            reason = "active_strategy_filter"
         if trade is None:
             new_rows.append(
                 ForwardSnapshotEvaluation(
@@ -105,6 +141,10 @@ def evaluate_settled_snapshot_windows(
                     edge=None,
                     pnl_usd=None,
                     fill_delay_seconds=None,
+                    market_end_time=window.market_end_time.isoformat(),
+                    active_strategy_source_candidate_id=strategy_source,
+                    active_strategy_filter_kind=strategy_filter,
+                    active_strategy_activated_at=strategy_activated_at,
                 )
             )
             continue
@@ -120,6 +160,10 @@ def evaluate_settled_snapshot_windows(
                 edge=trade.edge,
                 pnl_usd=trade.pnl_usd,
                 fill_delay_seconds=trade.fill_delay_seconds,
+                market_end_time=window.market_end_time.isoformat(),
+                active_strategy_source_candidate_id=strategy_source,
+                active_strategy_filter_kind=strategy_filter,
+                active_strategy_activated_at=strategy_activated_at,
             )
         )
 
@@ -138,6 +182,8 @@ def evaluate_settled_snapshot_windows(
         "existing_evaluations": len(existing),
         "new_evaluations": len(new_rows),
         "total_evaluations": len(merged),
+        "active_strategy_source_candidate_id": strategy_source,
+        "active_strategy_filter_kind": strategy_filter,
         "skipped_missing_sample": skipped_missing_sample,
         "skipped_insufficient_training": skipped_insufficient_training,
         "traded_rows": len(traded_rows),
@@ -160,9 +206,9 @@ def write_forward_evaluations(
             writer.writerow(row.__dict__)
 
 
-def _optional_float(value: str) -> float | None:
-    return float(value) if value != "" else None
+def _optional_float(value: str | None) -> float | None:
+    return float(value) if value not in {"", None} else None
 
 
-def _optional_int(value: str) -> int | None:
-    return int(value) if value != "" else None
+def _optional_int(value: str | None) -> int | None:
+    return int(value) if value not in {"", None} else None

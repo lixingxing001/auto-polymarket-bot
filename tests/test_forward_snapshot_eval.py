@@ -3,6 +3,7 @@ import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+from btc5m_bot.active_strategy import ActiveStrategyState
 from btc5m_bot.forward_snapshot_eval import evaluate_settled_snapshot_windows
 from btc5m_bot.historical import HistoricalSample
 from btc5m_bot.models import FeatureVector
@@ -67,7 +68,23 @@ class ForwardSnapshotEvalTests(unittest.TestCase):
                 snapshots={"s11": [quote]},
                 output_path=output_path,
                 min_train_size=10,
+                active_strategy_state=ActiveStrategyState(
+                    mode="paper",
+                    source_candidate_id="candidate",
+                    description="Candidate",
+                    rationale="Test",
+                    activated_at=datetime(2026, 5, 19, tzinfo=timezone.utc),
+                    live_trading_enabled=False,
+                    min_confidence=0.65,
+                    min_edge=0.03,
+                    stake_usd=10.0,
+                    max_fill_delay_seconds=30,
+                ),
             )
+            rendered = output_path.read_text(encoding="utf-8")
             self.assertEqual(summary["new_evaluations"], 1)
             self.assertEqual(summary["total_evaluations"], 1)
+            self.assertEqual(summary["active_strategy_source_candidate_id"], "candidate")
+            self.assertIn("active_strategy_source_candidate_id", rendered)
+            self.assertIn("candidate", rendered)
             self.assertTrue(output_path.exists())

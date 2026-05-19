@@ -43,8 +43,12 @@ function Invoke-Step {
 
 Invoke-Step -Name "canary_monitor" -ArgsList @("-m", "btc5m_bot.canary_monitor_cli", "--monitor-output", "canary_monitor_report.md", "--readiness-output", "canary_readiness_report.md") | Out-Null
 Invoke-Step -Name "strategy_guardrail" -ArgsList @("-m", "btc5m_bot.strategy_guardrail_cli") | Out-Null
+Invoke-Step -Name "recent_loss_diagnostics" -ArgsList @("-m", "btc5m_bot.recent_loss_diagnostics_cli", "--output", "recent_loss_diagnostics_report.md") | Out-Null
+Invoke-Step -Name "candidate_generation" -ArgsList @("-m", "btc5m_bot.candidate_generation_cli", "--output", "candidate_generation_report.md") | Out-Null
 Invoke-Step -Name "candidate_evidence" -ArgsList @("-m", "btc5m_bot.candidate_evidence_cli") | Out-Null
 Invoke-Step -Name "candidate_change_review" -ArgsList @("-m", "btc5m_bot.candidate_change_review_cli") | Out-Null
+Invoke-Step -Name "candidate_autopilot" -ArgsList @("-m", "btc5m_bot.candidate_autopilot_cli", "--enable-auto-promote") | Out-Null
+Invoke-Step -Name "current_strategy_readiness" -ArgsList @("-m", "btc5m_bot.current_strategy_readiness_cli", "--output", "current_strategy_readiness_report.md") | Out-Null
 Invoke-Step -Name "candidate_evidence_progress" -ArgsList @("-m", "btc5m_bot.candidate_evidence_progress_cli", "--output", "candidate_evidence_progress_report.md") | Out-Null
 Invoke-Step -Name "canary_watch_once" -ArgsList @("-m", "btc5m_bot.canary_watch_loop", "--iterations", "1", "--continue-on-error") | Out-Null
 Invoke-Step -Name "canary_dashboard" -ArgsList @("-m", "btc5m_bot.canary_dashboard_cli", "--output", "canary_dashboard.html") | Out-Null

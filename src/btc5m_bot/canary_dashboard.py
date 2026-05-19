@@ -7,9 +7,11 @@ from html import escape
 from pathlib import Path
 from typing import Any
 
+from .active_strategy import DEFAULT_ACTIVE_STRATEGY_STATE
 from .canary_readiness import build_canary_readiness_report
 from .candidate_change_review import build_candidate_change_review_report
 from .candidate_evidence_progress import build_candidate_evidence_progress_report
+from .current_strategy_readiness import build_current_strategy_readiness_report
 from .snapshot_status import read_snapshot_status
 
 
@@ -37,10 +39,15 @@ def build_canary_dashboard_data(
     window_summary_path: Path = DEFAULT_WINDOW_SUMMARY_PATH,
     settled_windows_path: Path = DEFAULT_SETTLED_WINDOWS_PATH,
     forward_ledger_path: Path = DEFAULT_FORWARD_LEDGER_PATH,
+    strategy_state_path: Path = DEFAULT_ACTIVE_STRATEGY_STATE,
 ) -> dict[str, Any]:
     readiness_report = build_canary_readiness_report(forward_ledger_path=forward_ledger_path)
     change_review = build_candidate_change_review_report(forward_ledger_path=forward_ledger_path)
     progress = build_candidate_evidence_progress_report()
+    current_strategy = build_current_strategy_readiness_report(
+        forward_ledger_path=forward_ledger_path,
+        strategy_state_path=strategy_state_path,
+    )
     files = {
         "snapshots": read_csv_file_status(snapshot_path),
         "window_summary": read_csv_file_status(window_summary_path),
@@ -100,6 +107,8 @@ def build_canary_dashboard_data(
         "candidate_progress": progress,
         "active_candidates": active_candidates,
         "next_candidate": next_candidate,
+        "current_strategy_readiness": current_strategy["readiness"],
+        "current_strategy_state": current_strategy["active_strategy_state"],
         "snapshot_status": snapshot_status,
         "files": {key: value.__dict__ for key, value in files.items()},
         "policy": {
@@ -263,6 +272,11 @@ def render_canary_dashboard_html(data: dict[str, Any]) -> str:
     </section>
   </div>
 
+  <section class="panel" style="margin-bottom:16px;">
+    <h2>当前纸面策略版本</h2>
+    {render_current_strategy(data)}
+  </section>
+
   <section class="panel">
     <h2>候选策略进度</h2>
     {render_candidate_table(data['active_candidates'])}
@@ -316,10 +330,12 @@ def render_data_collection(data: dict[str, Any]) -> str:
 
 def render_gate_list(data: dict[str, Any], candidate_quality_passed: list[str]) -> str:
     metrics = data["readiness_metrics"]
+    current_strategy = data["current_strategy_readiness"]
     gates = [
         ("前向评估 100+", int(metrics["forward_evaluations"]) >= 100, str(metrics["forward_evaluations"])),
         ("纸面交易 30+", int(metrics["forward_trades"]) >= 30, str(metrics["forward_trades"])),
         ("胜率 55%+", float(metrics["forward_win_rate"]) >= CANARY_WIN_RATE_FLOOR, pct(metrics["forward_win_rate"])),
+        ("当前策略版本", bool(current_strategy["ready"]), "ready" if current_strategy["ready"] else "collecting"),
         ("候选 review ready", bool(metrics.get("review_ready_candidates")), ", ".join(metrics.get("review_ready_candidates", [])) or "无"),
         ("候选质量通过", bool(candidate_quality_passed), ", ".join(candidate_quality_passed) or "无"),
         ("Mock 提交已见", int(metrics.get("accepted_attempts", 0)) > 0, str(metrics.get("accepted_attempts", 0))),
@@ -329,6 +345,27 @@ def render_gate_list(data: dict[str, Any], candidate_quality_passed: list[str]) 
         for name, ok, value in gates
     )
     return f"<table><thead><tr><th>门槛</th><th>状态</th><th>当前</th></tr></thead><tbody>{body}</tbody></table>"
+
+
+def render_current_strategy(data: dict[str, Any]) -> str:
+    readiness = data["current_strategy_readiness"]
+    metrics = readiness["metrics"]
+    state = data["current_strategy_state"]
+    rows = [
+        ("source", state["source_candidate_id"]),
+        ("filter", state["filter_kind"]),
+        ("activated_at", state["activated_at"]),
+        ("evaluations", str(metrics["current_strategy_evaluations"])),
+        ("trades", str(metrics["current_strategy_trades"])),
+        ("win_rate", pct(metrics["current_strategy_win_rate"])),
+        ("total_pnl", money(metrics["current_strategy_total_pnl_usd"])),
+        ("blockers", ", ".join(readiness["blockers"]) or "无"),
+    ]
+    body = "".join(
+        f"<tr><td>{escape(name)}</td><td>{escape(value)}</td></tr>"
+        for name, value in rows
+    )
+    return f"<table><tbody>{body}</tbody></table>"
 
 
 def render_candidate_table(candidates: list[dict[str, Any]]) -> str:
@@ -392,12 +429,14 @@ def write_canary_dashboard(
     window_summary_path: Path = DEFAULT_WINDOW_SUMMARY_PATH,
     settled_windows_path: Path = DEFAULT_SETTLED_WINDOWS_PATH,
     forward_ledger_path: Path = DEFAULT_FORWARD_LEDGER_PATH,
+    strategy_state_path: Path = DEFAULT_ACTIVE_STRATEGY_STATE,
 ) -> dict[str, Any]:
     data = build_canary_dashboard_data(
         snapshot_path=snapshot_path,
         window_summary_path=window_summary_path,
         settled_windows_path=settled_windows_path,
         forward_ledger_path=forward_ledger_path,
+        strategy_state_path=strategy_state_path,
     )
     output_path.write_text(render_canary_dashboard_html(data), encoding="utf-8")
     return data

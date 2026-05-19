@@ -2,29 +2,30 @@
 
 ## Status
 
-- generated_at: 2026-05-19T10:12:56.839664+00:00
-- active_candidate_count: 4
-- all_candidate_count: 7
-- next_review_candidate_id: confidence_070
-- review_ready_candidates: ['confidence_070']
+- generated_at: 2026-05-19T16:44:42.060812+00:00
+- active_candidate_count: 1
+- all_candidate_count: 8
+- next_review_candidate_id: avoid_trade_against_1m_momentum_v2
+- review_ready_candidates: []
 - change_quality_passed_candidates: []
-- waiting_for_first_divergence: []
-- needs_divergent_windows: ['avoid_trade_against_1m_momentum', 'avoid_trade_against_5m_momentum']
+- waiting_for_first_divergence: ['avoid_trade_against_1m_momentum_v2']
+- needs_divergent_windows: []
 
 ## Active candidates
 
 | candidate_id | blocker | eligible | divergent | eligible_gap | divergent_gap | eta_minutes | eta_confidence | delta_pnl | win_rate | next_action |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
-| confidence_070 | review_ready_quality_failed | 46 | 10 | 0 | 0 | 0 | ready | 11.76 | 100.0% | reject_or_redesign_candidate |
-| avoid_mid_distance_to_barrier_2_6bps | needs_eligible_windows | 25 | 13 | 5 | 0 | 25 | observed_rate | 10.50 | 100.0% | wait_for_more_settled_windows |
-| avoid_trade_against_1m_momentum | needs_divergent_windows | 20 | 2 | 10 | 8 | 400 | observed_rate | 4.63 | 100.0% | wait_for_more_divergent_windows |
-| avoid_trade_against_5m_momentum | needs_divergent_windows | 20 | 2 | 10 | 8 | 400 | observed_rate | 4.63 | 100.0% | wait_for_more_divergent_windows |
+| avoid_trade_against_1m_momentum_v2 | waiting_for_first_divergence | 0 | 0 | 30 | 10 | unknown | unknown_until_divergence_observed | 0.00 | 0.0% | wait_for_divergent_decision |
 
 ## Inactive candidates
 
-- avoid_low_momentum_near_barrier: status=rejected, delta_pnl=4.47
-- avoid_mid_abs_return_5m: status=rejected, delta_pnl=-4.45
-- edge_008: status=rejected, delta_pnl=-25.36
+- avoid_trade_against_5m_momentum: status=rejected, delta_pnl=21.79
+- avoid_mid_abs_return_5m: status=rejected, delta_pnl=20.71
+- avoid_mid_distance_to_barrier_2_6bps: status=rejected, delta_pnl=15.67
+- confidence_070: status=rejected, delta_pnl=12.51
+- avoid_low_momentum_near_barrier: status=rejected, delta_pnl=4.24
+- avoid_trade_against_1m_momentum: status=rejected, delta_pnl=55.09
+- edge_008: status=rejected, delta_pnl=31.49
 
 ## Boundary
 

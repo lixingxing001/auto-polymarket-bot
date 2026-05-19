@@ -18,6 +18,10 @@ from .candidate_change_review import (
     DEFAULT_CHANGE_REVIEW_REPORT,
     write_candidate_change_review_report,
 )
+from .current_strategy_readiness import (
+    DEFAULT_CURRENT_STRATEGY_READINESS_REPORT,
+    write_current_strategy_readiness_report,
+)
 
 
 DEFAULT_CANARY_WATCH_REPORT = Path("canary_watch_report.md")
@@ -29,6 +33,7 @@ def run_canary_watch_once(
     preflight_output_path: Path = DEFAULT_CANARY_PREFLIGHT_REPORT,
     change_review_output_path: Path = DEFAULT_CHANGE_REVIEW_REPORT,
     evidence_progress_output_path: Path = DEFAULT_PROGRESS_REPORT,
+    current_strategy_readiness_output_path: Path = DEFAULT_CURRENT_STRATEGY_READINESS_REPORT,
     watch_output_path: Path = DEFAULT_CANARY_WATCH_REPORT,
 ) -> dict[str, Any]:
     monitor = run_canary_monitor(
@@ -40,6 +45,9 @@ def run_canary_watch_once(
     evidence_progress = write_candidate_evidence_progress_report(
         output_path=evidence_progress_output_path,
     )
+    current_strategy_readiness = write_current_strategy_readiness_report(
+        output_path=current_strategy_readiness_output_path,
+    )
     report = {
         "checked_at": datetime.now(timezone.utc).isoformat(),
         "monitor": monitor["monitor"],
@@ -47,6 +55,7 @@ def run_canary_watch_once(
         "preflight": preflight["assessment"],
         "change_review": change_review["decision"],
         "evidence_progress": evidence_progress,
+        "current_strategy_readiness": current_strategy_readiness["readiness"],
     }
     watch_output_path.write_text(render_canary_watch_markdown(report), encoding="utf-8")
     return report
@@ -59,6 +68,8 @@ def render_canary_watch_markdown(report: dict[str, Any]) -> str:
     change_review = report["change_review"]
     evidence_progress = report.get("evidence_progress", {})
     progress_summary = evidence_progress.get("summary", {})
+    current_strategy = report.get("current_strategy_readiness", {})
+    current_metrics = current_strategy.get("metrics", {})
     lines = [
         "# Canary Watch Report",
         "",
@@ -75,6 +86,16 @@ def render_canary_watch_markdown(report: dict[str, Any]) -> str:
         f"- forward_win_rate: {readiness['metrics']['forward_win_rate']}",
         f"- forward_total_pnl_usd: {readiness['metrics']['forward_total_pnl_usd']}",
         f"- next_change_review_gap: {readiness['metrics']['next_change_review_gap']}",
+        "",
+        "## Current strategy readiness",
+        "",
+        f"- ready: {current_strategy.get('ready', False)}",
+        f"- blockers: {list(current_strategy.get('blockers', []))}",
+        f"- source_candidate_id: {current_metrics.get('source_candidate_id', 'none')}",
+        f"- evaluations: {current_metrics.get('current_strategy_evaluations', 0)}",
+        f"- trades: {current_metrics.get('current_strategy_trades', 0)}",
+        f"- win_rate: {current_metrics.get('current_strategy_win_rate', 0.0)}",
+        f"- total_pnl_usd: {current_metrics.get('current_strategy_total_pnl_usd', 0.0)}",
         "",
         "## Preflight",
         "",

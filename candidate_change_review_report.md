@@ -23,72 +23,27 @@
 
 ## Forward snapshot
 
-- evaluations: 224
-- traded_rows: 32
-- win_rate: 0.4375
-- total_pnl_usd: 43.46473031776175
+- evaluations: 303
+- traded_rows: 49
+- win_rate: 0.42857142857142855
+- total_pnl_usd: -25.741933118800908
 
 ## Candidate reviews
 
-### confidence_070
-
-- filter_kind: none
-- review_ready: True
-- change_quality_passed: False
-- blockers: ['insufficient_candidate_trades', 'candidate_trade_retention_too_low']
-- warnings: []
-- active_trades: 8
-- candidate_trades: 2
-- candidate_win_rate: 1.0
-- trade_retention: 0.25
-- active_total_pnl_usd: -1.2455019174374051
-- candidate_total_pnl_usd: 10.512615384615383
-- delta_pnl_usd: 11.758117302052788
-
-### avoid_mid_distance_to_barrier_2_6bps
-
-- filter_kind: avoid_mid_distance_to_barrier_bps
-- review_ready: False
-- change_quality_passed: False
-- blockers: ['candidate_evidence_not_review_ready', 'insufficient_candidate_trades']
-- warnings: []
-- active_trades: 3
-- candidate_trades: 2
-- candidate_win_rate: 1.0
-- trade_retention: 0.6666666666666666
-- active_total_pnl_usd: 1.2290645161290321
-- candidate_total_pnl_usd: 11.726064516129032
-- delta_pnl_usd: 10.497
-
-### avoid_trade_against_1m_momentum
+### avoid_trade_against_1m_momentum_v2
 
 - filter_kind: avoid_trade_against_1m_momentum
 - review_ready: False
 - change_quality_passed: False
-- blockers: ['candidate_evidence_not_review_ready', 'insufficient_candidate_trades', 'candidate_trade_retention_too_low']
-- warnings: []
-- active_trades: 3
-- candidate_trades: 1
-- candidate_win_rate: 1.0
-- trade_retention: 0.3333333333333333
-- active_total_pnl_usd: 1.2290645161290321
-- candidate_total_pnl_usd: 5.863032258064516
-- delta_pnl_usd: 4.633967741935484
-
-### avoid_trade_against_5m_momentum
-
-- filter_kind: avoid_trade_against_5m_momentum
-- review_ready: False
-- change_quality_passed: False
-- blockers: ['candidate_evidence_not_review_ready', 'insufficient_candidate_trades', 'candidate_trade_retention_too_low']
-- warnings: []
-- active_trades: 3
-- candidate_trades: 1
-- candidate_win_rate: 1.0
-- trade_retention: 0.3333333333333333
-- active_total_pnl_usd: 1.2290645161290321
-- candidate_total_pnl_usd: 5.863032258064516
-- delta_pnl_usd: 4.633967741935484
+- blockers: ['candidate_evidence_not_review_ready', 'delta_pnl_not_positive', 'candidate_pnl_not_positive', 'insufficient_candidate_trades', 'candidate_trade_retention_too_low']
+- warnings: ['candidate_win_rate_below_half']
+- active_trades: 0
+- candidate_trades: 0
+- candidate_win_rate: 0.0
+- trade_retention: 0.0
+- active_total_pnl_usd: 0
+- candidate_total_pnl_usd: 0
+- delta_pnl_usd: 0
 
 ## Excluded candidates
 
@@ -96,6 +51,10 @@
 |---|---:|---:|
 | avoid_low_momentum_near_barrier | rejected | candidate_status_not_active |
 | avoid_mid_abs_return_5m | rejected | candidate_status_not_active |
+| avoid_mid_distance_to_barrier_2_6bps | rejected | candidate_status_not_active |
+| avoid_trade_against_1m_momentum | rejected | candidate_status_not_active |
+| avoid_trade_against_5m_momentum | rejected | candidate_status_not_active |
+| confidence_070 | rejected | candidate_status_not_active |
 | edge_008 | rejected | candidate_status_not_active |
 
 ## Boundary

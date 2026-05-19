@@ -43,6 +43,7 @@ def build_candidate_generation_report(
             is_candidate_active(candidate) and candidate.min_confidence >= 0.70
             for candidate in registry.values()
         ),
+        existing_candidate_ids=set(registry),
     )
     return {
         "target": {
@@ -59,7 +60,9 @@ def build_candidate_proposals(
     recent_loss_report: dict[str, Any],
     active_filter_kinds: set[str],
     has_active_confidence_070: bool,
+    existing_candidate_ids: set[str] | None = None,
 ) -> tuple[CandidateProposal, ...]:
+    existing_candidate_ids = existing_candidate_ids or set()
     proposals: list[CandidateProposal] = []
     for slice_item in recent_loss_report["worst_slices"]:
         if not _slice_is_bad_enough(slice_item):
@@ -71,9 +74,17 @@ def build_candidate_proposals(
             and bucket == "against_momentum"
         ):
             active = "avoid_trade_against_5m_momentum" in active_filter_kinds
+            base_candidate_id = "avoid_trade_against_5m_momentum"
             proposals.append(
                 _proposal(
-                    candidate_id="avoid_trade_against_5m_momentum",
+                    candidate_id=(
+                        base_candidate_id
+                        if active
+                        else _next_available_candidate_id(
+                            base_candidate_id,
+                            existing_candidate_ids,
+                        )
+                    ),
                     filter_kind="avoid_trade_against_5m_momentum",
                     slice_item=slice_item,
                     rationale="Recent losses cluster in trades placed against 5 minute BTC momentum.",
@@ -89,9 +100,17 @@ def build_candidate_proposals(
             and bucket == "against_momentum"
         ):
             active = "avoid_trade_against_1m_momentum" in active_filter_kinds
+            base_candidate_id = "avoid_trade_against_1m_momentum"
             proposals.append(
                 _proposal(
-                    candidate_id="avoid_trade_against_1m_momentum",
+                    candidate_id=(
+                        base_candidate_id
+                        if active
+                        else _next_available_candidate_id(
+                            base_candidate_id,
+                            existing_candidate_ids,
+                        )
+                    ),
                     filter_kind="avoid_trade_against_1m_momentum",
                     slice_item=slice_item,
                     rationale="Recent losses cluster in trades placed against 1 minute BTC momentum.",
@@ -108,7 +127,14 @@ def build_candidate_proposals(
         ):
             proposals.append(
                 _proposal(
-                    candidate_id="confidence_070",
+                    candidate_id=(
+                        "confidence_070"
+                        if has_active_confidence_070
+                        else _next_available_candidate_id(
+                            "confidence_070",
+                            existing_candidate_ids,
+                        )
+                    ),
                     filter_kind="none",
                     slice_item=slice_item,
                     rationale="Recent losses cluster in the 0.65 to 0.70 confidence bucket.",
@@ -263,6 +289,15 @@ def _dedupe_by_candidate_id(
             -item.source_trades,
         ),
     )
+
+
+def _next_available_candidate_id(base: str, existing_ids: set[str]) -> str:
+    if base not in existing_ids:
+        return base
+    index = 2
+    while f"{base}_v{index}" in existing_ids:
+        index += 1
+    return f"{base}_v{index}"
 
 
 def _render_items(items: tuple[str, ...] | list[str]) -> list[str]:

@@ -45,6 +45,32 @@ class CandidateGenerationTests(unittest.TestCase):
         self.assertEqual(proposals[0].candidate_id, "avoid_trade_against_5m_momentum")
         self.assertEqual(proposals[0].action, "collect_prospective_evidence")
 
+    def test_existing_inactive_candidate_gets_versioned_id(self) -> None:
+        proposals = build_candidate_proposals(
+            recent_loss_report={
+                "worst_slices": [
+                    {
+                        "dimension": "trade_vs_1m_momentum",
+                        "bucket": "against_momentum",
+                        "trades": 4,
+                        "win_rate": 0.0,
+                        "total_pnl_usd": -42.0,
+                    }
+                ],
+            },
+            active_filter_kinds=set(),
+            has_active_confidence_070=False,
+            existing_candidate_ids={
+                "avoid_trade_against_1m_momentum",
+                "avoid_trade_against_1m_momentum_v2",
+            },
+        )
+        self.assertEqual(proposals[0].candidate_id, "avoid_trade_against_1m_momentum_v3")
+        self.assertIn(
+            "--candidate-id avoid_trade_against_1m_momentum_v3",
+            proposals[0].register_command,
+        )
+
     def test_render_report_lists_boundary(self) -> None:
         rendered = render_candidate_generation_markdown(
             {

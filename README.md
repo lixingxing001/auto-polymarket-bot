@@ -62,6 +62,7 @@ python -m btc5m_bot.strategy_candidate_cli compare --candidate-id edge_008
 python -m btc5m_bot.strategy_candidate_cli compare --candidate-id avoid_mid_distance_to_barrier_2_6bps
 python -m btc5m_bot.candidate_evidence_cli
 python -m btc5m_bot.candidate_change_review_cli
+python -m btc5m_bot.candidate_lifecycle_cli
 python -m btc5m_bot.recent_loss_diagnostics_cli
 python -m btc5m_bot.error_diagnostics_cli --windows 288
 python -m btc5m_bot.low_information_research_cli --windows 288
@@ -121,6 +122,7 @@ python -m btc5m_bot.snapshot_backtest_cli --windows 288
 - 候选策略登记与受控对照入口
 - 候选策略证据成熟度审计入口
 - 候选策略变更审查入口
+- 候选策略生命周期审查入口
 - 最近亏损交易切片诊断入口
 - 模型误差分层诊断入口
 - 低信息窗口过滤研究入口

@@ -88,7 +88,7 @@ class CandidateChangeReviewTests(unittest.TestCase):
         self.assertEqual(decision.selected_candidate_id, "stronger")
         self.assertTrue(decision.change_allowed)
 
-    def test_decision_prefers_review_ready_over_zero_evidence_candidate(self) -> None:
+    def test_decision_tracks_best_failed_candidate_without_selecting_it(self) -> None:
         review_ready_negative = review_candidate_change(
             candidate_id="review_ready_negative",
             filter_kind="none",
@@ -106,7 +106,8 @@ class CandidateChangeReviewTests(unittest.TestCase):
             },
             reviews=(zero_evidence, review_ready_negative),
         )
-        self.assertEqual(decision.selected_candidate_id, "review_ready_negative")
+        self.assertEqual(decision.selected_candidate_id, "")
+        self.assertEqual(decision.metrics["best_failed_candidate_id"], "review_ready_negative")
         self.assertIn("no_candidate_passed_change_quality", decision.blockers)
 
     def test_write_report(self) -> None:

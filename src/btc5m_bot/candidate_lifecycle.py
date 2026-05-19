@@ -258,7 +258,7 @@ def render_candidate_lifecycle_markdown(report: dict[str, Any]) -> str:
         f"- forward_total_pnl_usd: {_money(forward['total_pnl_usd'])}",
         f"- change_review_status: {change['status']}",
         f"- change_allowed: {change['change_allowed']}",
-        f"- selected_candidate_id: {change['selected_candidate_id']}",
+        f"- selected_candidate_id: {_display_candidate_id(change['selected_candidate_id'])}",
         "",
         "## Lifecycle buckets",
         "",
@@ -363,3 +363,7 @@ def _pct(value: float) -> str:
 
 def _money(value: float) -> str:
     return f"{value:.2f}"
+
+
+def _display_candidate_id(candidate_id: str) -> str:
+    return candidate_id or "none"

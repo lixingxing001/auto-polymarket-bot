@@ -27,6 +27,7 @@ class CanaryReadinessTests(unittest.TestCase):
         self.assertIn("insufficient_forward_evaluations", blockers)
         self.assertIn("insufficient_forward_trades", blockers)
         self.assertIn("no_candidate_review_ready", blockers)
+        self.assertIn("no_candidate_passed_change_quality", blockers)
         self.assertIn("no_mock_submit_seen", blockers)
 
     def test_candidate_statuses_detect_review_ready_candidate(self) -> None:
@@ -36,10 +37,42 @@ class CanaryReadinessTests(unittest.TestCase):
             comparisons = base / "comparisons"
             comparisons.mkdir()
             write_candidate_registry(registry, (_candidate("edge_008"),))
-            (comparisons / "edge_008.csv").write_text(_candidate_comparison_csv(), encoding="utf-8")
+            (comparisons / "edge_008.csv").write_text(
+                _failed_candidate_comparison_csv(),
+                encoding="utf-8",
+            )
             statuses = summarize_candidate_statuses(registry, comparisons)
         self.assertTrue(statuses["edge_008"]["assessment"]["review_ready"])
+        self.assertFalse(statuses["edge_008"]["change_review"]["change_quality_passed"])
         self.assertEqual(statuses["edge_008"]["summary"]["divergent_windows"], 10)
+
+    def test_failed_review_ready_candidate_does_not_unlock_candidate_gate(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            registry = base / "candidates.csv"
+            comparisons = base / "comparisons"
+            attempts = base / "attempts.csv"
+            intents = base / "intents.csv"
+            comparisons.mkdir()
+            write_candidate_registry(registry, (_candidate("edge_008"),))
+            (comparisons / "edge_008.csv").write_text(
+                _failed_candidate_comparison_csv(),
+                encoding="utf-8",
+            )
+            attempts.write_text(_accepted_attempt_csv(), encoding="utf-8")
+            intents.write_text(_intent_csv(), encoding="utf-8")
+            result = assess_canary_readiness(
+                forward_rows=_forward_rows(),
+                candidate_registry_path=registry,
+                candidate_comparison_dir=comparisons,
+                intent_event_path=intents,
+                attempt_log_path=attempts,
+            )
+        self.assertFalse(result["readiness"]["ready"])
+        self.assertIn(
+            "no_candidate_passed_change_quality",
+            result["readiness"]["blockers"],
+        )
 
     def test_ready_when_all_gates_pass(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -53,7 +86,10 @@ class CanaryReadinessTests(unittest.TestCase):
             comparisons.mkdir()
             forward.write_text(_forward_csv(), encoding="utf-8")
             write_candidate_registry(registry, (_candidate("edge_008"),))
-            (comparisons / "edge_008.csv").write_text(_candidate_comparison_csv(), encoding="utf-8")
+            (comparisons / "edge_008.csv").write_text(
+                _quality_passed_candidate_comparison_csv(),
+                encoding="utf-8",
+            )
             attempts.write_text(_accepted_attempt_csv(), encoding="utf-8")
             intents.write_text(_intent_csv(), encoding="utf-8")
             report = write_canary_readiness_report(
@@ -97,7 +133,7 @@ def _candidate(candidate_id: str) -> CandidateStrategy:
     )
 
 
-def _candidate_comparison_csv() -> str:
+def _failed_candidate_comparison_csv() -> str:
     rows = [
         "slug,market_end_time,label,forecast_prob_up,active_decision,active_reason,active_pnl_usd,candidate_decision,candidate_reason,candidate_pnl_usd,delta_pnl_usd"
     ]
@@ -107,6 +143,38 @@ def _candidate_comparison_csv() -> str:
             f"s{index},2026-05-19T12:00:00+00:00,UP,0.7,UP,traded,1.0,{('HOLD' if divergent else 'UP')},{('candidate_filter' if divergent else 'traded')},{('' if divergent else '1.0')},{('-1.0' if divergent else '0.0')}"
         )
     return "\n".join(rows) + "\n"
+
+
+def _quality_passed_candidate_comparison_csv() -> str:
+    rows = [
+        "slug,market_end_time,label,forecast_prob_up,active_decision,active_reason,active_pnl_usd,candidate_decision,candidate_reason,candidate_pnl_usd,delta_pnl_usd"
+    ]
+    for index in range(30):
+        divergent = index < 10
+        if divergent:
+            rows.append(
+                f"s{index},2026-05-19T12:00:00+00:00,UP,0.7,UP,traded,-1.0,HOLD,candidate_filter,,1.0"
+            )
+        else:
+            rows.append(
+                f"s{index},2026-05-19T12:00:00+00:00,UP,0.7,UP,traded,0.0,UP,traded,1.0,1.0"
+            )
+    return "\n".join(rows) + "\n"
+
+
+def _forward_rows() -> list[dict[str, str]]:
+    rows: list[dict[str, str]] = []
+    for index in range(30):
+        rows.append(
+            {
+                "reason": "traded",
+                "pnl_usd": "1.0" if index < 20 else "-0.5",
+                "edge": "0.06",
+            }
+        )
+    for _ in range(70):
+        rows.append({"reason": "low_confidence", "pnl_usd": "", "edge": ""})
+    return rows
 
 
 def _forward_csv() -> str:

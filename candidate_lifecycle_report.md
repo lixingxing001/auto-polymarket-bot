@@ -9,7 +9,7 @@
 - forward_total_pnl_usd: 48.10
 - change_review_status: DEFER_CHANGE
 - change_allowed: False
-- selected_candidate_id: avoid_low_momentum_near_barrier
+- selected_candidate_id: none
 
 ## Lifecycle buckets
 

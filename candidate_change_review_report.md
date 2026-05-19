@@ -3,7 +3,7 @@
 ## Decision
 
 - status: DEFER_CHANGE
-- selected_candidate_id: avoid_low_momentum_near_barrier
+- selected_candidate_id: none
 - change_allowed: False
 
 ## Blockers
@@ -23,7 +23,7 @@
 
 ## Forward snapshot
 
-- evaluations: 199
+- evaluations: 203
 - traded_rows: 30
 - win_rate: 0.43333333333333335
 - total_pnl_usd: 48.098698059697234

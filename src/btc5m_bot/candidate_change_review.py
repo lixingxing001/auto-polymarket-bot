@@ -126,24 +126,32 @@ def decide_candidate_change(
     guardrails: dict[str, Any],
     reviews: tuple[CandidateChangeReview, ...],
 ) -> CandidateChangeReviewDecision:
-    sorted_reviews = sorted(
-        reviews,
+    quality_passed_reviews = sorted(
+        (review for review in reviews if review.change_quality_passed),
         key=lambda item: (
-            item.change_quality_passed,
+            item.metrics["delta_pnl_usd"],
+            item.metrics["candidate_total_pnl_usd"],
+        ),
+        reverse=True,
+    )
+    failed_reviews = sorted(
+        (review for review in reviews if not review.change_quality_passed),
+        key=lambda item: (
             item.review_ready,
             item.metrics["delta_pnl_usd"],
             item.metrics["candidate_total_pnl_usd"],
         ),
         reverse=True,
     )
-    selected = sorted_reviews[0] if sorted_reviews else None
+    selected = quality_passed_reviews[0] if quality_passed_reviews else None
+    best_failed = failed_reviews[0] if failed_reviews else None
     blockers: list[str] = []
     warnings: list[str] = []
     if not guardrails["change_review_ready"]:
         blockers.append(f"guardrail_stage_{guardrails['stage']}")
-    if selected is None:
+    if not reviews:
         blockers.append("no_candidate_available")
-    elif not selected.change_quality_passed:
+    elif selected is None:
         blockers.append("no_candidate_passed_change_quality")
     elif selected.metrics["candidate_win_rate"] < 0.55:
         warnings.append("selected_candidate_win_rate_below_canary_floor")
@@ -163,6 +171,7 @@ def decide_candidate_change(
             "quality_passed_candidates": [
                 review.candidate_id for review in reviews if review.change_quality_passed
             ],
+            "best_failed_candidate_id": best_failed.candidate_id if best_failed else "",
             "selected_delta_pnl_usd": selected.metrics["delta_pnl_usd"] if selected else 0.0,
             "selected_candidate_total_pnl_usd": (
                 selected.metrics["candidate_total_pnl_usd"] if selected else 0.0
@@ -184,7 +193,7 @@ def render_candidate_change_review_markdown(report: dict[str, Any]) -> str:
         "## Decision",
         "",
         f"- status: {decision['status']}",
-        f"- selected_candidate_id: {decision['selected_candidate_id']}",
+        f"- selected_candidate_id: {_display_candidate_id(decision['selected_candidate_id'])}",
         f"- change_allowed: {decision['change_allowed']}",
         "",
         "## Blockers",
@@ -298,3 +307,7 @@ def _render_items(items: tuple[str, ...] | list[str]) -> list[str]:
     if not items:
         return ["- none"]
     return [f"- {item}" for item in items]
+
+
+def _display_candidate_id(candidate_id: str) -> str:
+    return candidate_id or "none"

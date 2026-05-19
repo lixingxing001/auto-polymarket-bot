@@ -9,6 +9,7 @@ from .candidate_evidence import (
     load_candidate_comparison_rows,
     summarize_candidate_evidence,
 )
+from .candidate_change_review import review_candidate_change
 from .candidate_strategies import load_candidate_registry
 from .execution_health import (
     DEFAULT_ATTEMPT_LOG,
@@ -32,6 +33,7 @@ DEFAULT_CANARY_REPORT = Path("canary_readiness_report.md")
 class CanaryReadinessPolicy:
     require_guardrail_change_review_ready: bool = True
     require_candidate_review_ready: bool = True
+    require_candidate_change_quality_passed: bool = True
     require_mock_submit_seen: bool = True
     min_forward_evaluations: int = 100
     min_forward_trades: int = 30
@@ -88,6 +90,13 @@ def assess_canary_readiness(
     ]
     if policy.require_candidate_review_ready and not review_ready_candidates:
         blockers.append("no_candidate_review_ready")
+    quality_passed_candidates = [
+        candidate_id
+        for candidate_id, item in candidate_statuses.items()
+        if item["change_review"]["change_quality_passed"]
+    ]
+    if policy.require_candidate_change_quality_passed and not quality_passed_candidates:
+        blockers.append("no_candidate_passed_change_quality")
     collecting_candidates = [
         candidate_id
         for candidate_id, item in candidate_statuses.items()
@@ -109,6 +118,7 @@ def assess_canary_readiness(
         "next_change_review_gap": guardrails["next_change_review_gap"],
         "candidate_count": len(candidate_statuses),
         "review_ready_candidates": review_ready_candidates,
+        "quality_passed_candidates": quality_passed_candidates,
         "collecting_candidates": collecting_candidates,
         "accepted_attempts": execution_health["accepted_attempts"],
         "rejected_attempts": execution_health["rejected_attempts"],
@@ -133,8 +143,12 @@ def summarize_candidate_statuses(
 ) -> dict[str, dict[str, Any]]:
     statuses: dict[str, dict[str, Any]] = {}
     for candidate_id, candidate in load_candidate_registry(registry_path).items():
-        summary = summarize_candidate_evidence(
-            load_candidate_comparison_rows(comparison_dir / f"{candidate_id}.csv")
+        rows = load_candidate_comparison_rows(comparison_dir / f"{candidate_id}.csv")
+        summary = summarize_candidate_evidence(rows)
+        change_review = review_candidate_change(
+            candidate_id=candidate_id,
+            filter_kind=candidate.filter_kind,
+            rows=rows,
         )
         assessment = assess_candidate_evidence(summary)
         statuses[candidate_id] = {
@@ -142,6 +156,7 @@ def summarize_candidate_statuses(
             "status": candidate.status,
             "summary": summary.__dict__,
             "assessment": assessment,
+            "change_review": change_review.__dict__,
         }
     return statuses
 
@@ -190,6 +205,7 @@ def render_canary_readiness_markdown(report: dict[str, Any]) -> str:
         f"- next_change_review_gap: {metrics['next_change_review_gap']}",
         f"- candidate_count: {metrics['candidate_count']}",
         f"- review_ready_candidates: {metrics['review_ready_candidates']}",
+        f"- quality_passed_candidates: {metrics.get('quality_passed_candidates', [])}",
         f"- collecting_candidates: {metrics['collecting_candidates']}",
         f"- accepted_attempts: {metrics['accepted_attempts']}",
         f"- rejected_attempts: {metrics['rejected_attempts']}",
@@ -200,12 +216,18 @@ def render_canary_readiness_markdown(report: dict[str, Any]) -> str:
     for candidate_id, item in report["candidate_statuses"].items():
         summary = item["summary"]
         assessment = item["assessment"]
+        change_review = item.get(
+            "change_review",
+            {"change_quality_passed": False, "blockers": ()},
+        )
         lines.extend(
             [
                 f"### {candidate_id}",
                 "",
                 f"- filter_kind: {item['filter_kind']}",
                 f"- stage: {assessment['stage']}",
+                f"- change_quality_passed: {change_review['change_quality_passed']}",
+                f"- change_blockers: {list(change_review['blockers'])}",
                 f"- eligible_windows: {summary['eligible_windows']}",
                 f"- divergent_windows: {summary['divergent_windows']}",
                 f"- delta_pnl_usd: {summary['delta_pnl_usd']}",

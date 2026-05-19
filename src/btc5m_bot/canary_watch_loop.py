@@ -74,7 +74,7 @@ def render_canary_watch_markdown(report: dict[str, Any]) -> str:
         "## Candidate change review",
         "",
         f"- status: {change_review['status']}",
-        f"- selected_candidate_id: {change_review['selected_candidate_id']}",
+        f"- selected_candidate_id: {_display_candidate_id(change_review['selected_candidate_id'])}",
         f"- change_allowed: {change_review['change_allowed']}",
         f"- blockers: {list(change_review['blockers'])}",
         f"- warnings: {list(change_review['warnings'])}",
@@ -124,6 +124,10 @@ def main() -> None:
         interval_seconds=args.interval_seconds,
         continue_on_error=args.continue_on_error,
     )
+
+
+def _display_candidate_id(candidate_id: str) -> str:
+    return candidate_id or "none"
 
 
 if __name__ == "__main__":

@@ -9,6 +9,7 @@
 ## Blockers
 
 - forward_win_rate_below_canary_floor
+- no_candidate_passed_change_quality
 - canary_authorization_packet_not_ready
 - lee_authorization_env_missing
 - isolated_wallet_confirmation_missing
@@ -25,7 +26,7 @@
 - authorization_status: NOT_READY
 - kill_switch_active: False
 - real_adapter_unlock_allowed: False
-- forward_evaluations: 199
+- forward_evaluations: 203
 - forward_trades: 30
 - forward_total_pnl_usd: 48.098698059697234
 - review_ready_candidates: ['avoid_low_momentum_near_barrier', 'avoid_mid_abs_return_5m', 'edge_008']

@@ -8,10 +8,9 @@
 
 ## Blockers
 
-- guardrail_stage_collecting
-- insufficient_forward_evaluations
+- guardrail_stage_review_only
 - insufficient_forward_trades
-- no_candidate_review_ready
+- forward_win_rate_below_canary_floor
 - canary_authorization_packet_not_ready
 - lee_authorization_env_missing
 - isolated_wallet_confirmation_missing
@@ -19,7 +18,6 @@
 
 ## Warnings
 
-- candidate_evidence_still_collecting
 - no_live_execution_ledger_entries
 
 ## Metrics
@@ -28,10 +26,10 @@
 - authorization_status: NOT_READY
 - kill_switch_active: False
 - real_adapter_unlock_allowed: False
-- forward_evaluations: 31
-- forward_trades: 2
-- forward_total_pnl_usd: 12.423176470588238
-- review_ready_candidates: []
+- forward_evaluations: 135
+- forward_trades: 18
+- forward_total_pnl_usd: 53.66933580337976
+- review_ready_candidates: ['avoid_low_momentum_near_barrier', 'avoid_mid_abs_return_5m', 'edge_008']
 
 ## Boundary
 

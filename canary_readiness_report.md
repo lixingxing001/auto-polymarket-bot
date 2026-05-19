@@ -6,26 +6,25 @@
 
 ## Blockers
 
-- guardrail_stage_collecting
-- insufficient_forward_evaluations
+- guardrail_stage_review_only
 - insufficient_forward_trades
-- no_candidate_review_ready
+- forward_win_rate_below_canary_floor
 
 ## Warnings
 
-- candidate_evidence_still_collecting
+- none
 
 ## Core metrics
 
-- forward_evaluations: 31
-- forward_trades: 2
-- forward_win_rate: 1.0
-- forward_total_pnl_usd: 12.423176470588238
-- guardrail_stage: collecting
-- next_change_review_gap: {'evaluations_needed': 69, 'trades_needed': 28}
+- forward_evaluations: 135
+- forward_trades: 18
+- forward_win_rate: 0.4444444444444444
+- forward_total_pnl_usd: 53.66933580337976
+- guardrail_stage: review_only
+- next_change_review_gap: {'evaluations_needed': 0, 'trades_needed': 12}
 - candidate_count: 3
-- review_ready_candidates: []
-- collecting_candidates: ['avoid_low_momentum_near_barrier', 'avoid_mid_abs_return_5m', 'edge_008']
+- review_ready_candidates: ['avoid_low_momentum_near_barrier', 'avoid_mid_abs_return_5m', 'edge_008']
+- collecting_candidates: []
 - accepted_attempts: 1
 - rejected_attempts: 2
 
@@ -34,26 +33,26 @@
 ### avoid_low_momentum_near_barrier
 
 - filter_kind: avoid_low_momentum_near_barrier
-- stage: collecting
-- eligible_windows: 21
-- divergent_windows: 4
-- delta_pnl_usd: -9.264843137254903
-- next_review_gap: {'eligible_windows_needed': 9, 'divergent_windows_needed': 6}
+- stage: review_ready
+- eligible_windows: 87
+- divergent_windows: 25
+- delta_pnl_usd: 11.512156862745094
+- next_review_gap: {'eligible_windows_needed': 0, 'divergent_windows_needed': 0}
 
 ### avoid_mid_abs_return_5m
 
 - filter_kind: avoid_mid_abs_return_5m
-- stage: collecting
-- eligible_windows: 19
-- divergent_windows: 1
-- delta_pnl_usd: 0.0
-- next_review_gap: {'eligible_windows_needed': 11, 'divergent_windows_needed': 9}
+- stage: review_ready
+- eligible_windows: 87
+- divergent_windows: 30
+- delta_pnl_usd: 20.308761679384396
+- next_review_gap: {'eligible_windows_needed': 0, 'divergent_windows_needed': 0}
 
 ### edge_008
 
 - filter_kind: none
-- stage: collecting
-- eligible_windows: 24
-- divergent_windows: 1
-- delta_pnl_usd: 10.553
-- next_review_gap: {'eligible_windows_needed': 6, 'divergent_windows_needed': 9}
+- stage: review_ready
+- eligible_windows: 87
+- divergent_windows: 11
+- delta_pnl_usd: -40.717192585192585
+- next_review_gap: {'eligible_windows_needed': 0, 'divergent_windows_needed': 0}

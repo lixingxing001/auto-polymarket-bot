@@ -1,25 +1,24 @@
 # Canary Monitor Report
 
-- checked_at: 2026-05-18T17:41:12.859594+00:00
+- checked_at: 2026-05-19T02:22:53.020551+00:00
 - ready: False
 - next_action: collect_more_forward_evidence
 - readiness_report_path: canary_readiness_report.md
 
 ## Blockers
 
-- guardrail_stage_collecting
-- insufficient_forward_evaluations
+- guardrail_stage_review_only
 - insufficient_forward_trades
-- no_candidate_review_ready
+- forward_win_rate_below_canary_floor
 
 ## Warnings
 
-- candidate_evidence_still_collecting
+- none
 
 ## Evidence gap
 
-- forward_evaluations: 31
-- forward_trades: 2
-- next_change_review_gap: {'evaluations_needed': 69, 'trades_needed': 28}
-- review_ready_candidates: []
-- collecting_candidates: ['avoid_low_momentum_near_barrier', 'avoid_mid_abs_return_5m', 'edge_008']
+- forward_evaluations: 135
+- forward_trades: 18
+- next_change_review_gap: {'evaluations_needed': 0, 'trades_needed': 12}
+- review_ready_candidates: ['avoid_low_momentum_near_barrier', 'avoid_mid_abs_return_5m', 'edge_008']
+- collecting_candidates: []

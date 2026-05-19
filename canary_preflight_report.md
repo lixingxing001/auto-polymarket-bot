@@ -9,7 +9,6 @@
 ## Blockers
 
 - forward_win_rate_below_canary_floor
-- no_candidate_review_ready
 - no_candidate_passed_change_quality
 - canary_authorization_packet_not_ready
 - lee_authorization_env_missing
@@ -27,10 +26,10 @@
 - authorization_status: NOT_READY
 - kill_switch_active: False
 - real_adapter_unlock_allowed: False
-- forward_evaluations: 206
-- forward_trades: 30
-- forward_total_pnl_usd: 48.098698059697234
-- review_ready_candidates: []
+- forward_evaluations: 224
+- forward_trades: 32
+- forward_total_pnl_usd: 43.46473031776175
+- review_ready_candidates: ['confidence_070']
 
 ## Boundary
 

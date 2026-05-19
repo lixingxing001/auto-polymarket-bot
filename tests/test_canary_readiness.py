@@ -74,6 +74,35 @@ class CanaryReadinessTests(unittest.TestCase):
             result["readiness"]["blockers"],
         )
 
+    def test_rejected_review_ready_candidate_is_not_active_for_readiness(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            registry = base / "candidates.csv"
+            comparisons = base / "comparisons"
+            attempts = base / "attempts.csv"
+            intents = base / "intents.csv"
+            comparisons.mkdir()
+            write_candidate_registry(
+                registry,
+                (_candidate("old", status="rejected"),),
+            )
+            (comparisons / "old.csv").write_text(
+                _quality_passed_candidate_comparison_csv(),
+                encoding="utf-8",
+            )
+            attempts.write_text(_accepted_attempt_csv(), encoding="utf-8")
+            intents.write_text(_intent_csv(), encoding="utf-8")
+            result = assess_canary_readiness(
+                forward_rows=_forward_rows(),
+                candidate_registry_path=registry,
+                candidate_comparison_dir=comparisons,
+                intent_event_path=intents,
+                attempt_log_path=attempts,
+            )
+        self.assertFalse(result["readiness"]["ready"])
+        self.assertEqual(result["readiness"]["metrics"]["active_candidate_count"], 0)
+        self.assertIn("no_candidate_review_ready", result["readiness"]["blockers"])
+
     def test_ready_when_all_gates_pass(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             base = Path(tmp)
@@ -118,7 +147,7 @@ class CanaryReadinessTests(unittest.TestCase):
         self.assertIn("no_candidate_review_ready", markdown)
 
 
-def _candidate(candidate_id: str) -> CandidateStrategy:
+def _candidate(candidate_id: str, status: str = "registered") -> CandidateStrategy:
     now = datetime(2026, 5, 19, 12, 0, tzinfo=timezone.utc)
     return CandidateStrategy(
         candidate_id=candidate_id,
@@ -130,6 +159,7 @@ def _candidate(candidate_id: str) -> CandidateStrategy:
         min_edge=0.03,
         stake_usd=10.0,
         max_fill_delay_seconds=30,
+        status=status,
     )
 
 

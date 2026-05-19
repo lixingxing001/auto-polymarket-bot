@@ -35,6 +35,7 @@ class CandidateLifecyclePolicy:
 @dataclass(frozen=True)
 class CandidateLifecycleItem:
     candidate_id: str
+    candidate_status: str
     lifecycle_status: str
     recommended_action: str
     rationale: tuple[str, ...]
@@ -77,6 +78,7 @@ def build_candidate_lifecycle_report(
         )
         items.append(
             classify_candidate_lifecycle(
+                candidate_status=candidate.status,
                 review=review,
                 evidence_assessment=evidence_assessment,
                 guardrails=guardrails,
@@ -105,11 +107,27 @@ def classify_candidate_lifecycle(
     review: CandidateChangeReview,
     evidence_assessment: dict[str, Any],
     guardrails: dict[str, Any],
+    candidate_status: str = "registered",
     policy: CandidateLifecyclePolicy | None = None,
 ) -> CandidateLifecycleItem:
     policy = policy or CandidateLifecyclePolicy()
     rationale: list[str] = []
     metrics = review.metrics
+    if candidate_status not in {"registered", "collecting"}:
+        rationale.append("candidate_status_not_active")
+        return CandidateLifecycleItem(
+            candidate_id=review.candidate_id,
+            candidate_status=candidate_status,
+            lifecycle_status="REJECTED",
+            recommended_action="keep_excluded_from_change_review",
+            rationale=tuple(rationale),
+            filter_kind=review.filter_kind,
+            review_ready=review.review_ready,
+            change_quality_passed=review.change_quality_passed,
+            blockers=review.blockers,
+            warnings=review.warnings,
+            metrics=metrics,
+        )
     if not review.review_ready:
         gap = evidence_assessment["next_review_gap"]
         rationale.append(
@@ -119,6 +137,7 @@ def classify_candidate_lifecycle(
         )
         return CandidateLifecycleItem(
             candidate_id=review.candidate_id,
+            candidate_status=candidate_status,
             lifecycle_status="COLLECTING",
             recommended_action="collect_more_forward_evidence",
             rationale=tuple(rationale),
@@ -139,6 +158,7 @@ def classify_candidate_lifecycle(
             rationale.append("candidate_win_rate_below_half")
         return CandidateLifecycleItem(
             candidate_id=review.candidate_id,
+            candidate_status=candidate_status,
             lifecycle_status="REJECT_RECOMMENDED",
             recommended_action="do_not_promote_candidate",
             rationale=tuple(rationale),
@@ -154,6 +174,7 @@ def classify_candidate_lifecycle(
         rationale.extend(review.blockers)
         return CandidateLifecycleItem(
             candidate_id=review.candidate_id,
+            candidate_status=candidate_status,
             lifecycle_status="REVIEW_READY",
             recommended_action="manual_quality_review",
             rationale=tuple(dict.fromkeys(rationale)),
@@ -169,6 +190,7 @@ def classify_candidate_lifecycle(
         rationale.append(f"guardrail_stage_{guardrails['stage']}")
         return CandidateLifecycleItem(
             candidate_id=review.candidate_id,
+            candidate_status=candidate_status,
             lifecycle_status="REVIEW_READY",
             recommended_action="wait_for_guardrail_change_review_ready",
             rationale=tuple(rationale),
@@ -187,6 +209,7 @@ def classify_candidate_lifecycle(
     if rationale:
         return CandidateLifecycleItem(
             candidate_id=review.candidate_id,
+            candidate_status=candidate_status,
             lifecycle_status="REVIEW_READY",
             recommended_action="manual_quality_review",
             rationale=tuple(rationale),
@@ -200,6 +223,7 @@ def classify_candidate_lifecycle(
 
     return CandidateLifecycleItem(
         candidate_id=review.candidate_id,
+        candidate_status=candidate_status,
         lifecycle_status="PROMOTION_READY",
         recommended_action="manual_freeze_review_allowed",
         rationale=("all_lifecycle_gates_passed",),
@@ -220,6 +244,7 @@ def bucket_lifecycle_items(
         "REVIEW_READY",
         "COLLECTING",
         "REJECT_RECOMMENDED",
+        "REJECTED",
     )
     return {
         status: tuple(item for item in items if item.lifecycle_status == status)
@@ -268,6 +293,7 @@ def render_candidate_lifecycle_markdown(report: dict[str, Any]) -> str:
         "REVIEW_READY",
         "COLLECTING",
         "REJECT_RECOMMENDED",
+        "REJECTED",
     ):
         items = report["buckets"][status]
         lines.extend(
@@ -282,8 +308,8 @@ def render_candidate_lifecycle_markdown(report: dict[str, Any]) -> str:
         [
             "## Candidate details",
             "",
-            "| candidate_id | lifecycle | action | review_ready | delta_pnl | candidate_trades | candidate_win_rate | blockers | rationale |",
-            "|---|---:|---:|---:|---:|---:|---:|---|---|",
+            "| candidate_id | status | lifecycle | action | review_ready | delta_pnl | candidate_trades | candidate_win_rate | blockers | rationale |",
+            "|---|---:|---:|---:|---:|---:|---:|---:|---|---|",
         ]
     )
     for item in sorted(
@@ -300,6 +326,7 @@ def render_candidate_lifecycle_markdown(report: dict[str, Any]) -> str:
             + " | ".join(
                 [
                     item["candidate_id"],
+                    item["candidate_status"],
                     item["lifecycle_status"],
                     item["recommended_action"],
                     str(item["review_ready"]),
@@ -354,6 +381,7 @@ def _status_rank(status: str) -> int:
         "REVIEW_READY": 1,
         "COLLECTING": 2,
         "REJECT_RECOMMENDED": 3,
+        "REJECTED": 4,
     }[status]
 
 

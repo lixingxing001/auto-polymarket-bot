@@ -6,10 +6,12 @@ from pathlib import Path
 from btc5m_bot.candidate_strategies import (
     CandidateStrategy,
     candidate_allows_sample,
+    candidate_allows_trade,
     compare_candidate_strategy,
     load_candidate_registry,
     register_candidate,
     summarize_candidate_comparison,
+    update_candidate_status,
 )
 from btc5m_bot.historical import HistoricalSample
 from btc5m_bot.models import FeatureVector
@@ -35,6 +37,9 @@ class CandidateStrategyTests(unittest.TestCase):
             )
             loaded = load_candidate_registry(path)["edge_008"]
             self.assertEqual(loaded, candidate)
+            rejected = update_candidate_status(path, "edge_008", "rejected")
+            self.assertEqual(rejected.status, "rejected")
+            self.assertEqual(load_candidate_registry(path)["edge_008"].status, "rejected")
 
     def test_candidate_filter_blocks_low_momentum_near_barrier(self) -> None:
         sample = HistoricalSample(
@@ -140,6 +145,40 @@ class CandidateStrategyTests(unittest.TestCase):
             max_abs_distance_to_barrier_bps=6.0,
         )
         self.assertFalse(candidate_allows_sample(candidate, sample))
+
+    def test_candidate_filter_blocks_trade_against_5m_momentum(self) -> None:
+        sample = HistoricalSample(
+            window_start=datetime(2026, 5, 18, 0, 0, tzinfo=timezone.utc),
+            window_end=datetime(2026, 5, 18, 0, 5, tzinfo=timezone.utc),
+            slug="s",
+            condition_id="c",
+            label="Up",
+            prob_up=0.5,
+            features=FeatureVector(
+                return_1m=0.0,
+                return_5m=0.001,
+                realized_vol_5m=0.0,
+                trade_imbalance_30s=0.0,
+                distance_to_barrier_bps=3.0,
+                seconds_to_close=240,
+            ),
+            polymarket_up_price=0.5,
+            polymarket_down_price=0.5,
+        )
+        candidate = CandidateStrategy(
+            candidate_id="momentum",
+            description="momentum",
+            rationale="momentum",
+            registered_at=datetime(2026, 5, 18, 0, 0, tzinfo=timezone.utc),
+            eligible_after_market_end_time=datetime(2026, 5, 18, 0, 0, tzinfo=timezone.utc),
+            min_confidence=0.65,
+            min_edge=0.03,
+            stake_usd=10.0,
+            max_fill_delay_seconds=30,
+            filter_kind="avoid_trade_against_5m_momentum",
+        )
+        self.assertFalse(candidate_allows_trade(candidate, sample, decision="DOWN"))
+        self.assertTrue(candidate_allows_trade(candidate, sample, decision="UP"))
 
     def test_compare_candidate_only_uses_future_windows(self) -> None:
         start = datetime(2026, 5, 18, 0, 0, tzinfo=timezone.utc)

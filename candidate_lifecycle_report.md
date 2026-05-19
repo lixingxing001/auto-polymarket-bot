@@ -24,9 +24,15 @@
 ### COLLECTING
 
 - avoid_mid_distance_to_barrier_2_6bps
+- avoid_trade_against_1m_momentum
+- avoid_trade_against_5m_momentum
 - confidence_070
 
 ### REJECT_RECOMMENDED
+
+- none
+
+### REJECTED
 
 - avoid_low_momentum_near_barrier
 - avoid_mid_abs_return_5m
@@ -34,13 +40,15 @@
 
 ## Candidate details
 
-| candidate_id | lifecycle | action | review_ready | delta_pnl | candidate_trades | candidate_win_rate | blockers | rationale |
-|---|---:|---:|---:|---:|---:|---:|---|---|
-| confidence_070 | COLLECTING | collect_more_forward_evidence | False | 2.65 | 2 | 100.0% | candidate_evidence_not_review_ready, insufficient_candidate_trades | needs_more_evidence:eligible_windows=9,divergent_windows=7 |
-| avoid_mid_distance_to_barrier_2_6bps | COLLECTING | collect_more_forward_evidence | False | 0.00 | 0 | 0.0% | candidate_evidence_not_review_ready, delta_pnl_not_positive, candidate_pnl_not_positive, insufficient_candidate_trades, candidate_trade_retention_too_low | needs_more_evidence:eligible_windows=30,divergent_windows=10 |
-| avoid_low_momentum_near_barrier | REJECT_RECOMMENDED | do_not_promote_candidate | True | 0.00 | 16 | 37.5% | delta_pnl_not_positive | review_ready_but_delta_pnl_not_positive, candidate_win_rate_below_half |
-| avoid_mid_abs_return_5m | REJECT_RECOMMENDED | do_not_promote_candidate | True | -13.56 | 12 | 41.7% | delta_pnl_not_positive | review_ready_but_delta_pnl_not_positive, candidate_win_rate_below_half |
-| edge_008 | REJECT_RECOMMENDED | do_not_promote_candidate | True | -44.75 | 6 | 33.3% | delta_pnl_not_positive, insufficient_candidate_trades, candidate_trade_retention_too_low | review_ready_but_delta_pnl_not_positive, candidate_win_rate_below_half |
+| candidate_id | status | lifecycle | action | review_ready | delta_pnl | candidate_trades | candidate_win_rate | blockers | rationale |
+|---|---:|---:|---:|---:|---:|---:|---:|---|---|
+| confidence_070 | registered | COLLECTING | collect_more_forward_evidence | False | 2.65 | 2 | 100.0% | candidate_evidence_not_review_ready, insufficient_candidate_trades | needs_more_evidence:eligible_windows=4,divergent_windows=6 |
+| avoid_mid_distance_to_barrier_2_6bps | registered | COLLECTING | collect_more_forward_evidence | False | 0.00 | 0 | 0.0% | candidate_evidence_not_review_ready, delta_pnl_not_positive, candidate_pnl_not_positive, insufficient_candidate_trades, candidate_trade_retention_too_low | needs_more_evidence:eligible_windows=25,divergent_windows=8 |
+| avoid_trade_against_1m_momentum | registered | COLLECTING | collect_more_forward_evidence | False | 0.00 | 0 | 0.0% | candidate_evidence_not_review_ready, delta_pnl_not_positive, candidate_pnl_not_positive, insufficient_candidate_trades, candidate_trade_retention_too_low | needs_more_evidence:eligible_windows=30,divergent_windows=10 |
+| avoid_trade_against_5m_momentum | registered | COLLECTING | collect_more_forward_evidence | False | 0.00 | 0 | 0.0% | candidate_evidence_not_review_ready, delta_pnl_not_positive, candidate_pnl_not_positive, insufficient_candidate_trades, candidate_trade_retention_too_low | needs_more_evidence:eligible_windows=30,divergent_windows=10 |
+| avoid_low_momentum_near_barrier | rejected | REJECTED | keep_excluded_from_change_review | True | 0.00 | 16 | 37.5% | delta_pnl_not_positive | candidate_status_not_active |
+| avoid_mid_abs_return_5m | rejected | REJECTED | keep_excluded_from_change_review | True | -13.56 | 12 | 41.7% | delta_pnl_not_positive | candidate_status_not_active |
+| edge_008 | rejected | REJECTED | keep_excluded_from_change_review | True | -44.75 | 6 | 33.3% | delta_pnl_not_positive, insufficient_candidate_trades, candidate_trade_retention_too_low | candidate_status_not_active |
 
 ## Boundary
 

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 from dataclasses import dataclass
+from dataclasses import replace
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -11,6 +12,18 @@ from .learning import sample_to_features, train_logistic_regression
 from .settled_snapshot_archive import SettledSnapshotWindow
 from .snapshot_backtest import SnapshotQuote, backtest_sample_with_snapshot, find_snapshot_at_or_after
 from .strategy_guardrails import ACTIVE_STRATEGY_PARAMETERS
+
+
+ACTIVE_CANDIDATE_STATUSES = frozenset({"registered", "collecting"})
+VALID_CANDIDATE_STATUSES = frozenset(
+    {
+        "registered",
+        "collecting",
+        "rejected",
+        "archived",
+        "promoted",
+    }
+)
 
 
 @dataclass(frozen=True)
@@ -88,6 +101,26 @@ def load_candidate_registry(path: Path) -> dict[str, CandidateStrategy]:
         )
         for row in rows
     }
+
+
+def is_candidate_active(candidate: CandidateStrategy) -> bool:
+    return candidate.status in ACTIVE_CANDIDATE_STATUSES
+
+
+def update_candidate_status(
+    path: Path,
+    candidate_id: str,
+    status: str,
+) -> CandidateStrategy:
+    if status not in VALID_CANDIDATE_STATUSES:
+        raise ValueError(f"unsupported candidate status: {status}")
+    registry = load_candidate_registry(path)
+    if candidate_id not in registry:
+        raise ValueError(f"candidate does not exist: {candidate_id}")
+    updated = replace(registry[candidate_id], status=status)
+    registry[candidate_id] = updated
+    write_candidate_registry(path, tuple(registry.values()))
+    return updated
 
 
 def register_candidate(
@@ -232,7 +265,11 @@ def compare_candidate_strategy(
             forecast_prob_up=forecast_prob_up,
             config=candidate_config,
         )
-        if not candidate_allows_sample(candidate, sample):
+        if not candidate_allows_trade(
+            candidate=candidate,
+            sample=sample,
+            decision=candidate_trade.decision if candidate_trade is not None else "HOLD",
+        ):
             candidate_trade = None
             candidate_reason = "candidate_filter"
         active_pnl = active_trade.pnl_usd if active_trade is not None else None
@@ -318,7 +355,38 @@ def candidate_allows_sample(
             raise ValueError("mid distance filter requires min and max abs distance")
         abs_distance = abs(sample.features.distance_to_barrier_bps)
         return not (min_abs_distance < abs_distance <= max_abs_distance)
+    if candidate.filter_kind in {
+        "avoid_trade_against_1m_momentum",
+        "avoid_trade_against_5m_momentum",
+    }:
+        return True
     raise ValueError(f"unsupported candidate filter: {candidate.filter_kind}")
+
+
+def candidate_allows_trade(
+    candidate: CandidateStrategy,
+    sample: HistoricalSample,
+    decision: str,
+) -> bool:
+    if not candidate_allows_sample(candidate, sample):
+        return False
+    if decision == "HOLD":
+        return True
+    if candidate.filter_kind == "avoid_trade_against_1m_momentum":
+        return not _trade_against_momentum(decision, sample.features.return_1m)
+    if candidate.filter_kind == "avoid_trade_against_5m_momentum":
+        return not _trade_against_momentum(decision, sample.features.return_5m)
+    return True
+
+
+def _trade_against_momentum(decision: str, momentum: float) -> bool:
+    if momentum == 0.0:
+        return False
+    if decision == "UP":
+        return momentum < 0.0
+    if decision == "DOWN":
+        return momentum > 0.0
+    return False
 
 
 def _optional_float(value: str | None) -> float | None:

@@ -5,9 +5,11 @@ from pathlib import Path
 
 from .candidate_strategies import (
     compare_candidate_strategy,
+    is_candidate_active,
     load_candidate_registry,
     register_candidate,
     summarize_candidate_comparison,
+    update_candidate_status,
     write_candidate_comparison,
 )
 from .historical import build_recent_historical_dataset
@@ -67,6 +69,11 @@ def main() -> None:
     list_parser = subparsers.add_parser("list")
     list_parser.add_argument("--registry", type=Path, default=DEFAULT_REGISTRY)
 
+    status_parser = subparsers.add_parser("set-status")
+    status_parser.add_argument("--candidate-id", required=True)
+    status_parser.add_argument("--status", required=True)
+    status_parser.add_argument("--registry", type=Path, default=DEFAULT_REGISTRY)
+
     compare_parser = subparsers.add_parser("compare")
     compare_parser.add_argument("--candidate-id", required=True)
     compare_parser.add_argument("--registry", type=Path, default=DEFAULT_REGISTRY)
@@ -104,7 +111,24 @@ def main() -> None:
 
     registry = load_candidate_registry(args.registry)
     if args.command == "list":
-        print({candidate_id: candidate.__dict__ for candidate_id, candidate in registry.items()})
+        print(
+            {
+                candidate_id: {
+                    **candidate.__dict__,
+                    "active": is_candidate_active(candidate),
+                }
+                for candidate_id, candidate in registry.items()
+            }
+        )
+        return
+
+    if args.command == "set-status":
+        candidate = update_candidate_status(
+            path=args.registry,
+            candidate_id=args.candidate_id,
+            status=args.status,
+        )
+        print({**candidate.__dict__, "active": is_candidate_active(candidate)})
         return
 
     candidate = registry[args.candidate_id]

@@ -9,7 +9,7 @@ from .candidate_evidence import (
     load_candidate_comparison_rows,
     summarize_candidate_evidence,
 )
-from .candidate_strategies import load_candidate_registry
+from .candidate_strategies import is_candidate_active, load_candidate_registry
 from .strategy_guardrails import (
     assess_strategy_guardrails,
     load_forward_ledger_rows,
@@ -62,7 +62,17 @@ def build_candidate_change_review_report(
     forward_summary = summarize_forward_ledger(load_forward_ledger_rows(forward_ledger_path))
     guardrails = assess_strategy_guardrails(forward_summary)
     reviews = []
+    excluded_candidates = []
     for candidate_id, candidate in load_candidate_registry(registry_path).items():
+        if not is_candidate_active(candidate):
+            excluded_candidates.append(
+                {
+                    "candidate_id": candidate_id,
+                    "status": candidate.status,
+                    "reason": "candidate_status_not_active",
+                }
+            )
+            continue
         rows = load_candidate_comparison_rows(comparison_dir / f"{candidate_id}.csv")
         reviews.append(
             review_candidate_change(
@@ -78,6 +88,7 @@ def build_candidate_change_review_report(
         "guardrails": guardrails,
         "forward_summary": forward_summary.__dict__,
         "candidate_reviews": [review.__dict__ for review in reviews],
+        "excluded_candidates": excluded_candidates,
         "policy": policy.__dict__,
     }
 
@@ -250,6 +261,28 @@ def render_candidate_change_review_markdown(report: dict[str, Any]) -> str:
                 "",
             ]
         )
+    if report.get("excluded_candidates"):
+        lines.extend(
+            [
+                "## Excluded candidates",
+                "",
+                "| candidate_id | status | reason |",
+                "|---|---:|---:|",
+            ]
+        )
+        for candidate in report["excluded_candidates"]:
+            lines.append(
+                "| "
+                + " | ".join(
+                    [
+                        candidate["candidate_id"],
+                        candidate["status"],
+                        candidate["reason"],
+                    ]
+                )
+                + " |"
+            )
+        lines.append("")
     lines.extend(
         [
             "## Boundary",

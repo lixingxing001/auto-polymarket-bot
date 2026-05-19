@@ -10,7 +10,7 @@ from .candidate_evidence import (
     summarize_candidate_evidence,
 )
 from .candidate_change_review import review_candidate_change
-from .candidate_strategies import load_candidate_registry
+from .candidate_strategies import is_candidate_active, load_candidate_registry
 from .execution_health import (
     DEFAULT_ATTEMPT_LOG,
     DEFAULT_INTENT_EVENT_LOG,
@@ -86,21 +86,21 @@ def assess_canary_readiness(
     review_ready_candidates = [
         candidate_id
         for candidate_id, item in candidate_statuses.items()
-        if item["assessment"]["review_ready"]
+        if item["active"] and item["assessment"]["review_ready"]
     ]
     if policy.require_candidate_review_ready and not review_ready_candidates:
         blockers.append("no_candidate_review_ready")
     quality_passed_candidates = [
         candidate_id
         for candidate_id, item in candidate_statuses.items()
-        if item["change_review"]["change_quality_passed"]
+        if item["active"] and item["change_review"]["change_quality_passed"]
     ]
     if policy.require_candidate_change_quality_passed and not quality_passed_candidates:
         blockers.append("no_candidate_passed_change_quality")
     collecting_candidates = [
         candidate_id
         for candidate_id, item in candidate_statuses.items()
-        if item["assessment"]["stage"] == "collecting"
+        if item["active"] and item["assessment"]["stage"] == "collecting"
     ]
     if collecting_candidates:
         warnings.append("candidate_evidence_still_collecting")
@@ -117,6 +117,7 @@ def assess_canary_readiness(
         "next_review_gap": guardrails["next_review_gap"],
         "next_change_review_gap": guardrails["next_change_review_gap"],
         "candidate_count": len(candidate_statuses),
+        "active_candidate_count": sum(1 for item in candidate_statuses.values() if item["active"]),
         "review_ready_candidates": review_ready_candidates,
         "quality_passed_candidates": quality_passed_candidates,
         "collecting_candidates": collecting_candidates,
@@ -154,6 +155,7 @@ def summarize_candidate_statuses(
         statuses[candidate_id] = {
             "filter_kind": candidate.filter_kind,
             "status": candidate.status,
+            "active": is_candidate_active(candidate),
             "summary": summary.__dict__,
             "assessment": assessment,
             "change_review": change_review.__dict__,
@@ -204,6 +206,7 @@ def render_canary_readiness_markdown(report: dict[str, Any]) -> str:
         f"- guardrail_stage: {metrics['guardrail_stage']}",
         f"- next_change_review_gap: {metrics['next_change_review_gap']}",
         f"- candidate_count: {metrics['candidate_count']}",
+        f"- active_candidate_count: {metrics.get('active_candidate_count', metrics['candidate_count'])}",
         f"- review_ready_candidates: {metrics['review_ready_candidates']}",
         f"- quality_passed_candidates: {metrics.get('quality_passed_candidates', [])}",
         f"- collecting_candidates: {metrics['collecting_candidates']}",
@@ -225,6 +228,8 @@ def render_canary_readiness_markdown(report: dict[str, Any]) -> str:
                 f"### {candidate_id}",
                 "",
                 f"- filter_kind: {item['filter_kind']}",
+                f"- status: {item.get('status', 'registered')}",
+                f"- active: {item.get('active', True)}",
                 f"- stage: {assessment['stage']}",
                 f"- change_quality_passed: {change_review['change_quality_passed']}",
                 f"- change_blockers: {list(change_review['blockers'])}",

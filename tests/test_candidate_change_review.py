@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from btc5m_bot.candidate_change_review import (
+    build_candidate_change_review_report,
     CandidateChangeReviewPolicy,
     decide_candidate_change,
     render_candidate_change_review_markdown,
@@ -157,6 +158,52 @@ class CandidateChangeReviewTests(unittest.TestCase):
             rendered = output.read_text(encoding="utf-8")
         self.assertEqual(report["decision"]["selected_candidate_id"], "mid")
         self.assertIn("Candidate Change Review Report", rendered)
+
+    def test_rejected_candidate_is_excluded_from_change_decision(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            registry = base / "registry.csv"
+            comparison_dir = base / "comparisons"
+            ledger = base / "forward.csv"
+            write_candidate_registry(
+                registry,
+                (
+                    CandidateStrategy(
+                        candidate_id="old",
+                        description="Old filter",
+                        rationale="Failed evidence",
+                        registered_at=datetime(2026, 5, 18, tzinfo=timezone.utc),
+                        eligible_after_market_end_time=datetime(
+                            2026,
+                            5,
+                            18,
+                            tzinfo=timezone.utc,
+                        ),
+                        min_confidence=0.65,
+                        min_edge=0.03,
+                        stake_usd=10.0,
+                        max_fill_delay_seconds=30,
+                        status="rejected",
+                    ),
+                ),
+            )
+            comparison_dir.mkdir()
+            _write_rows(
+                comparison_dir / "old.csv",
+                [
+                    *[_avoid_loss_row(active_pnl=-1.0) for _ in range(10)],
+                    *[_row(active_pnl=1.0, candidate_pnl=1.0) for _ in range(20)],
+                ],
+            )
+            _write_forward_ledger(ledger, rows=100, trades=30)
+            report = build_candidate_change_review_report(
+                forward_ledger_path=ledger,
+                registry_path=registry,
+                comparison_dir=comparison_dir,
+            )
+        self.assertEqual(report["decision"]["selected_candidate_id"], "")
+        self.assertIn("no_candidate_available", report["decision"]["blockers"])
+        self.assertEqual(report["excluded_candidates"][0]["candidate_id"], "old")
 
     def test_render_lists_boundary(self) -> None:
         rendered = render_candidate_change_review_markdown(

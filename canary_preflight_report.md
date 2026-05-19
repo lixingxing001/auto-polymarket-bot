@@ -18,6 +18,7 @@
 
 ## Warnings
 
+- candidate_evidence_still_collecting
 - no_live_execution_ledger_entries
 
 ## Metrics
@@ -26,10 +27,10 @@
 - authorization_status: NOT_READY
 - kill_switch_active: False
 - real_adapter_unlock_allowed: False
-- forward_evaluations: 135
-- forward_trades: 18
-- forward_total_pnl_usd: 53.66933580337976
-- review_ready_candidates: ['avoid_low_momentum_near_barrier', 'avoid_mid_abs_return_5m', 'edge_008']
+- forward_evaluations: 141
+- forward_trades: 20
+- forward_total_pnl_usd: 32.570335803379756
+- review_ready_candidates: ['avoid_low_momentum_near_barrier', 'avoid_mid_abs_return_5m']
 
 ## Boundary
 
